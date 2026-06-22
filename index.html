@@ -155,13 +155,18 @@
     main { display: grid; gap: 22px; }
     section {
       scroll-margin-top: 96px;
-      opacity: 0;
-      transform: translateY(34px);
-      filter: blur(3px);
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
       transition:
         opacity .5s ease,
         transform .5s ease,
         filter .5s ease;
+    }
+    .reveal-enabled section {
+      opacity: 0;
+      transform: translateY(34px);
+      filter: blur(3px);
     }
     section.is-visible {
       opacity: 1;
@@ -2187,6 +2192,7 @@
       window.setTimeout(() => section.classList.remove("section-focus"), 520);
     }
 
+    document.documentElement.classList.add("reveal-enabled");
     const revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) entry.target.classList.add("is-visible");
