@@ -1,0 +1,319 @@
+{
+  "generatedAt": "2026-06-24T19:54:31.636Z",
+  "status": "Initial training and validation module. This records current V1/V2/V3 parameters across train, validation and test periods; full grid search is the next step.",
+  "splits": [
+    {
+      "key": "train",
+      "label": "Train",
+      "start": "2013-01-01",
+      "end": "2018-12-31",
+      "purpose": "Estimate baseline behavior and fit time-series / ML components."
+    },
+    {
+      "key": "validation",
+      "label": "Validation",
+      "start": "2019-01-01",
+      "end": "2021-12-31",
+      "purpose": "Select parameters without touching the final test period."
+    },
+    {
+      "key": "test",
+      "label": "Test",
+      "start": "2022-01-01",
+      "end": "2026-06-30",
+      "purpose": "Final out-of-sample evaluation using parameters chosen on validation."
+    }
+  ],
+  "objective": {
+    "formula": "Score = 0.45 * Sharpe + 0.30 * Calmar - 0.10 * Abs(MaxDrawdown)",
+    "reason": "The objective rewards risk-adjusted return and drawdown efficiency, while discouraging large drawdowns. Turnover penalty will be added after parameter-grid backtests are generated."
+  },
+  "coreModels": [
+    {
+      "name": "V1 Momentum-Vol Research Model",
+      "note": "252-day stock momentum; top 3; inverse vol; 10.0% vol target",
+      "fullSample": {
+        "cagr": 0.12585521907429276,
+        "volatility": 0.11394483487388549,
+        "sharpe": 1.0999284305067447,
+        "maxDrawdown": -0.1388468905424649,
+        "winRate": 0.6086956521739131,
+        "endingValue": 494.6692766080021,
+        "annualTurnover": 3.1138055551742583,
+        "totalCost": 4.891118814338805
+      },
+      "parameters": {
+        "current": {
+          "lookbackDays": 252,
+          "skipDays": 21,
+          "topN": 3,
+          "targetVol": 0.1,
+          "maxGross": 2
+        },
+        "candidateGrid": {
+          "lookbackDays": [
+            126,
+            252,
+            378
+          ],
+          "skipDays": [
+            0,
+            21
+          ],
+          "topN": [
+            3,
+            5,
+            8
+          ],
+          "targetVol": [
+            0.08,
+            0.1,
+            0.12
+          ],
+          "maxGross": [
+            1,
+            1.5,
+            2
+          ]
+        },
+        "trainingMeaning": "V1 training means selecting stable momentum, selection and volatility-scaling parameters."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.12404078754058268,
+          "volatility": 0.10197184797750981,
+          "sharpe": 1.2021692671791875,
+          "maxDrawdown": -0.11701400792759142,
+          "calmar": 1.0600507557807903,
+          "score": 0.8472899961721123,
+          "endingValue": 199.67001970817756
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.07616417630907013,
+          "volatility": 0.09168339142454973,
+          "sharpe": 0.8469970916211905,
+          "maxDrawdown": -0.053119003000952736,
+          "calmar": 1.4338404715108086,
+          "score": 0.8059889323826831,
+          "endingValue": 123.86590333059777
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.16574716774284415,
+          "volatility": 0.11559188234785768,
+          "sharpe": 1.3830350104020568,
+          "maxDrawdown": -0.07078386351952537,
+          "calmar": 2.3415953792508604,
+          "score": 1.3177659821042311,
+          "endingValue": 196.18973591217875
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final"
+    },
+    {
+      "name": "V2 HMM-GARCH-MVO",
+      "note": "Two-state Gaussian HMM, GARCH(1,1) likelihood grid and capped long-only MVO",
+      "fullSample": {
+        "cagr": 0.2773008267797581,
+        "volatility": 0.19946584191898156,
+        "sharpe": 1.3302609024738576,
+        "maxDrawdown": -0.3245653083128771,
+        "winRate": 0.6521739130434783,
+        "endingValue": 2715.714393816558,
+        "annualTurnover": 9.936277644137618,
+        "totalCost": 53.217720025232154
+      },
+      "parameters": {
+        "current": {
+          "historyDays": 504,
+          "covarianceDays": 252,
+          "lowRiskAversion": 1.5,
+          "highRiskAversion": 6,
+          "maxWeight": 0.6
+        },
+        "candidateGrid": {
+          "historyDays": [
+            504,
+            756,
+            1008
+          ],
+          "covarianceDays": [
+            126,
+            252,
+            378
+          ],
+          "lowRiskAversion": [
+            1.5,
+            3,
+            4
+          ],
+          "highRiskAversion": [
+            6,
+            9,
+            12
+          ],
+          "maxWeight": [
+            0.25,
+            0.35,
+            0.5
+          ],
+          "turnoverPenalty": [
+            0,
+            0.05,
+            0.1
+          ]
+        },
+        "trainingMeaning": "V2 training means estimating HMM/GARCH on the training window and selecting MVO hyperparameters on validation."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.26607427576540643,
+          "volatility": 0.16067206400345738,
+          "sharpe": 1.5579797757790854,
+          "maxDrawdown": -0.1680803969668937,
+          "calmar": 1.5830178924304559,
+          "score": 1.1591882271330356,
+          "endingValue": 403.56992423158005
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.3924374126396599,
+          "volatility": 0.22964912894421735,
+          "sharpe": 1.571318032643312,
+          "maxDrawdown": -0.20581561619997402,
+          "calmar": 1.9067426460894052,
+          "score": 1.2585343468963146,
+          "endingValue": 262.5564746318319
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.24169902516130626,
+          "volatility": 0.22261202309570466,
+          "sharpe": 1.0833753383197462,
+          "maxDrawdown": -0.23581459876066668,
+          "calmar": 1.0249536136929835,
+          "score": 0.7714235264757142,
+          "endingValue": 258.8995830533588
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final"
+    },
+    {
+      "name": "V3 Boosted Trees + Attribution",
+      "note": "Walk-forward regularized gradient-boosted decision stumps with additive feature attribution",
+      "fullSample": {
+        "cagr": 0.12539555052557505,
+        "volatility": 0.10876460620063243,
+        "sharpe": 1.1433261273764899,
+        "maxDrawdown": -0.15501552981119027,
+        "winRate": 0.6770186335403726,
+        "endingValue": 490.6082881869892,
+        "annualTurnover": 5.635434998637408,
+        "totalCost": 8.070968933836308
+      },
+      "parameters": {
+        "current": {
+          "rounds": 40,
+          "learningRate": 0.05,
+          "lambda": 2,
+          "topN": 5,
+          "targetVol": 0.1,
+          "maxGross": 2
+        },
+        "candidateGrid": {
+          "rounds": [
+            20,
+            40,
+            60
+          ],
+          "learningRate": [
+            0.03,
+            0.05,
+            0.08
+          ],
+          "lambda": [
+            1,
+            2,
+            5
+          ],
+          "topN": [
+            3,
+            5,
+            8
+          ],
+          "targetVol": [
+            0.08,
+            0.1,
+            0.12
+          ],
+          "featureSet": [
+            "price_only",
+            "price_plus_risk",
+            "price_risk_drawdown"
+          ]
+        },
+        "trainingMeaning": "V3 training means fitting the boosted model on training data and choosing ML hyperparameters by validation performance."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1234471574544469,
+          "volatility": 0.09698133808605196,
+          "sharpe": 1.252662023763464,
+          "maxDrawdown": -0.10085437600414271,
+          "calmar": 1.2240138935505998,
+          "score": 0.9208166411583245,
+          "endingValue": 199.04722239152056
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.15538336392993313,
+          "volatility": 0.07093501530675764,
+          "sharpe": 2.0821787613233234,
+          "maxDrawdown": -0.03940478792334556,
+          "calmar": 3.943261012651599,
+          "score": 2.1160182675986405,
+          "endingValue": 152.36930511269776
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.11860592516383917,
+          "volatility": 0.10127496538508994,
+          "sharpe": 1.155043565901253,
+          "maxDrawdown": -0.10494232569351125,
+          "calmar": 1.1302010354738379,
+          "score": 0.8483356827283641,
+          "endingValue": 163.64375616152614
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final"
+    }
+  ],
+  "nextSteps": [
+    "Run parameter grid search on the validation period.",
+    "Keep the final test period untouched until parameter selection is complete.",
+    "Add walk-forward monthly parameter selection after the initial grid search.",
+    "Record every parameter change in paper/strategy_research_log.md and results/strategy_change_log.csv."
+  ]
+}
