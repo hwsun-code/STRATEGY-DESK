@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-24T19:54:31.636Z",
-  "status": "Initial training and validation module. This records current V1/V2/V3 parameters across train, validation and test periods; full grid search is the next step.",
+  "generatedAt": "2026-06-24T20:39:38.800Z",
+  "status": "All 15 research strategies are now included in train / validation / test evaluation. These are baseline upgraded parameters; full grid search is the next step.",
   "splits": [
     {
       "key": "train",
@@ -28,9 +28,10 @@
     "formula": "Score = 0.45 * Sharpe + 0.30 * Calmar - 0.10 * Abs(MaxDrawdown)",
     "reason": "The objective rewards risk-adjusted return and drawdown efficiency, while discouraging large drawdowns. Turnover penalty will be added after parameter-grid backtests are generated."
   },
-  "coreModels": [
+  "models": [
     {
       "name": "V1 Momentum-Vol Research Model",
+      "group": "Core",
       "note": "252-day stock momentum; top 3; inverse vol; 10.0% vol target",
       "fullSample": {
         "cagr": 0.12585521907429276,
@@ -116,10 +117,17 @@
           "endingValue": 196.18973591217875
         }
       },
-      "selectedStatus": "baseline_current_parameters_not_final"
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 63.7316445215164,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.23836136947186937
+      }
     },
     {
       "name": "V2 HMM-GARCH-MVO",
+      "group": "V2",
       "note": "Two-state Gaussian HMM, GARCH(1,1) likelihood grid and capped long-only MVO",
       "fullSample": {
         "cagr": 0.2773008267797581,
@@ -211,10 +219,17 @@
           "endingValue": 258.8995830533588
         }
       },
-      "selectedStatus": "baseline_current_parameters_not_final"
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 59.99629519814747,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.19793378410813672
+      }
     },
     {
       "name": "V3 Boosted Trees + Attribution",
+      "group": "V3",
       "note": "Walk-forward regularized gradient-boosted decision stumps with additive feature attribution",
       "fullSample": {
         "cagr": 0.12539555052557505,
@@ -307,11 +322,2602 @@
           "endingValue": 163.64375616152614
         }
       },
-      "selectedStatus": "baseline_current_parameters_not_final"
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 100,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.34039537895171745
+      }
+    },
+    {
+      "name": "S1 AI Capex Momentum+",
+      "group": "Custom AI",
+      "note": "Upgraded AI infrastructure strategy: 12-1 stock momentum plus QQQ/XLK AI-risk confirmation, volatility targeting and hedge sleeve.",
+      "fullSample": {
+        "cagr": 0.1753076407522327,
+        "volatility": 0.13612551665071423,
+        "sharpe": 1.2579154123946708,
+        "maxDrawdown": -0.18764778566737328,
+        "winRate": 0.6335403726708074,
+        "endingValue": 884.2601339253937,
+        "annualTurnover": 3.3382956294262196,
+        "totalCost": 7.732262339511569
+      },
+      "parameters": {
+        "current": {
+          "aiFactorConfirm": "QQQ/XLK 126D",
+          "stockMomentum": "12-1M + 3M",
+          "targetVol": 0.12,
+          "hedgeSleeve": "IEF/GLD/TLT"
+        },
+        "candidateGrid": {
+          "targetVol": [
+            0.1,
+            0.12,
+            0.14
+          ],
+          "aiWeight": [
+            0.1,
+            0.15,
+            0.25
+          ],
+          "hedgeSleeve": [
+            0.05,
+            0.1,
+            0.2
+          ],
+          "topN": [
+            4,
+            5,
+            6
+          ]
+        },
+        "trainingMeaning": "Train the AI-capex factor weight and hedge sleeve so the strategy does not simply chase technology beta."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1826570913517258,
+          "volatility": 0.12555965484677023,
+          "sharpe": 1.406758069971195,
+          "maxDrawdown": -0.15100803591286782,
+          "calmar": 1.2095852399346456,
+          "score": 0.9808158998761447,
+          "endingValue": 269.6929087442459
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.17079187358190318,
+          "volatility": 0.12016576912712901,
+          "sharpe": 1.3787918758382611,
+          "maxDrawdown": -0.07519381777586398,
+          "calmar": 2.271355260760874,
+          "score": 1.2943435405778934,
+          "endingValue": 158.37034641808992
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.16959345634561251,
+          "volatility": 0.13375381954187462,
+          "sharpe": 1.2365431879671285,
+          "maxDrawdown": -0.11612003134172344,
+          "calmar": 1.4605012966843334,
+          "score": 0.9829828204563356,
+          "endingValue": 199.05015738539177
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 82.17998833922366,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.06808236836332078
+      }
+    },
+    {
+      "name": "S2 Quality Growth Barbell+",
+      "group": "Custom AI",
+      "note": "Upgraded quality-growth barbell: quality proxy, growth acceleration, low-vol hedge that expands during market stress.",
+      "fullSample": {
+        "cagr": 0.30559379363961714,
+        "volatility": 0.19470677613153628,
+        "sharpe": 1.4708450363658165,
+        "maxDrawdown": -0.2763510844197141,
+        "winRate": 0.6956521739130435,
+        "endingValue": 3652.6123651188695,
+        "annualTurnover": 4.062568731666302,
+        "totalCost": 30.578291628562656
+      },
+      "parameters": {
+        "current": {
+          "qualityWeight": 0.52,
+          "growthWeight": 0.4,
+          "lowVolHedge": ".08 to .18"
+        },
+        "candidateGrid": {
+          "qualityWeight": [
+            0.45,
+            0.52,
+            0.6
+          ],
+          "growthWeight": [
+            0.3,
+            0.4,
+            0.5
+          ],
+          "stressHedge": [
+            0.1,
+            0.18,
+            0.25
+          ]
+        },
+        "trainingMeaning": "Train the quality/growth balance and stress hedge intensity."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.314732439429366,
+          "volatility": 0.14817121477356626,
+          "sharpe": 1.9391415467675108,
+          "maxDrawdown": -0.18217968647065952,
+          "calmar": 1.727593484908398,
+          "score": 1.3726737728708334,
+          "endingValue": 504.40044806137803
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.36588963600837365,
+          "volatility": 0.16896420500654424,
+          "sharpe": 1.9494482031717493,
+          "maxDrawdown": -0.10155983038933802,
+          "calmar": 3.6027003452615607,
+          "score": 1.9479058119668216,
+          "endingValue": 248.2254669779634
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.2662362357275183,
+          "volatility": 0.18212869559982336,
+          "sharpe": 1.3897382734969213,
+          "maxDrawdown": -0.14269990567108093,
+          "calmar": 1.8657071598994954,
+          "score": 1.170824380476355,
+          "endingValue": 282.14700069440164
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 100,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.18199790059307244
+      }
+    },
+    {
+      "name": "S3 Crowding-Aware Momentum+",
+      "group": "Custom Risk",
+      "note": "Upgraded anti-crowding momentum: penalizes one-month chase, volatility spikes and crowded momentum ETF conditions.",
+      "fullSample": {
+        "cagr": 0.11042184743189254,
+        "volatility": 0.11660815216240668,
+        "sharpe": 0.958844775578788,
+        "maxDrawdown": -0.16480801383402077,
+        "winRate": 0.6024844720496895,
+        "endingValue": 409.8350210112972,
+        "annualTurnover": 4.9512896692308805,
+        "totalCost": 6.919211271696975
+      },
+      "parameters": {
+        "current": {
+          "momentum": "12-1M",
+          "chasePenalty": "1M",
+          "crowdingProxy": "MTUM",
+          "targetVol": 0.1
+        },
+        "candidateGrid": {
+          "chasePenalty": [
+            0.45,
+            0.65,
+            0.85
+          ],
+          "crowdingPenalty": [
+            0.1,
+            0.2,
+            0.3
+          ],
+          "targetVol": [
+            0.08,
+            0.1,
+            0.12
+          ]
+        },
+        "trainingMeaning": "Train how strongly the model penalizes crowded or overheated momentum."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.10056435492687421,
+          "volatility": 0.10227271879483926,
+          "sharpe": 0.991066073108739,
+          "maxDrawdown": -0.13287898765057893,
+          "calmar": 0.7568115674640759,
+          "score": 0.6597353043730975,
+          "endingValue": 176.23965953469826
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.09430685346189449,
+          "volatility": 0.08244494541071119,
+          "sharpe": 1.1367867340595215,
+          "maxDrawdown": -0.04798451623105693,
+          "calmar": 1.9653600967400489,
+          "score": 1.0963636077256935,
+          "endingValue": 130.0535698235652
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.139688734723171,
+          "volatility": 0.10507151193046699,
+          "sharpe": 1.2952662385094833,
+          "maxDrawdown": -0.09290220560611029,
+          "calmar": 1.5036105312227754,
+          "score": 1.0246627461354891,
+          "endingValue": 177.63683735490662
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 70.83124567287497,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.13333863242795232
+      }
+    },
+    {
+      "name": "S4 Low-Vol Alpha Shield+",
+      "group": "Custom Risk",
+      "note": "Upgraded low-vol shield: medium trend, 200-day trend confirmation, drawdown penalty and lower target volatility.",
+      "fullSample": {
+        "cagr": 0.13405775313874324,
+        "volatility": 0.10574279146370902,
+        "sharpe": 1.2456969843584649,
+        "maxDrawdown": -0.15302127991876568,
+        "winRate": 0.6956521739130435,
+        "endingValue": 547.5035080118057,
+        "annualTurnover": 6.54607022107716,
+        "totalCost": 11.527338497869835
+      },
+      "parameters": {
+        "current": {
+          "trend": "126D + 200D confirm",
+          "volPenalty": 0.65,
+          "targetVol": 0.085
+        },
+        "candidateGrid": {
+          "volPenalty": [
+            0.45,
+            0.65,
+            0.85
+          ],
+          "targetVol": [
+            0.07,
+            0.085,
+            0.1
+          ],
+          "topN": [
+            5,
+            6,
+            8
+          ]
+        },
+        "trainingMeaning": "Train the low-volatility penalty and conservative risk budget."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1533335853602633,
+          "volatility": 0.10319583004896103,
+          "sharpe": 1.4404467195909685,
+          "maxDrawdown": -0.12165641760216661,
+          "calmar": 1.2603822172512547,
+          "score": 1.0141500472310956,
+          "endingValue": 232.48048203042296
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.12309292326980104,
+          "volatility": 0.09240576101272506,
+          "sharpe": 1.3064700356443653,
+          "maxDrawdown": -0.04724794141907318,
+          "calmar": 2.605254738571754,
+          "score": 1.3647631434695833,
+          "endingValue": 140.282219980081
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.12832779605926214,
+          "volatility": 0.08756473603751903,
+          "sharpe": 1.421040768180455,
+          "maxDrawdown": -0.07239680110275104,
+          "calmar": 1.7725616892537777,
+          "score": 1.1639971723470628,
+          "endingValue": 169.98624751019972
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 81.31291619265085,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.05211370750950118
+      }
+    },
+    {
+      "name": "S5 Regime-Switch Equity Hedge+",
+      "group": "Custom Macro",
+      "note": "Upgraded regime hedge: blends SPY trend, HYG/IEF credit momentum, TLT rates signal and volatility stress into a risk-on score.",
+      "fullSample": {
+        "cagr": 0.22048398300982575,
+        "volatility": 0.16580397763931298,
+        "sharpe": 1.2878724317227006,
+        "maxDrawdown": -0.26480820163833096,
+        "winRate": 0.6832298136645962,
+        "endingValue": 1476.0766961190634,
+        "annualTurnover": 8.703948142403947,
+        "totalCost": 30.72163804423294
+      },
+      "parameters": {
+        "current": {
+          "regimeScore": "SPY trend + HYG/IEF + TLT + vol",
+          "hedgeSleeve": ".18 or .62"
+        },
+        "candidateGrid": {
+          "regimeThreshold": [
+            0,
+            0.15,
+            0.3
+          ],
+          "riskOnEquity": [
+            0.75,
+            0.82,
+            0.9
+          ],
+          "riskOffHedge": [
+            0.5,
+            0.62,
+            0.75
+          ]
+        },
+        "trainingMeaning": "Train the macro regime threshold and how much exposure shifts into hedges."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.23560512743139173,
+          "volatility": 0.129382814432766,
+          "sharpe": 1.711101980586738,
+          "maxDrawdown": -0.08818427876061741,
+          "calmar": 2.671736172736173,
+          "score": 1.5626983152088223,
+          "endingValue": 349.4252577916641
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.28070438478345405,
+          "volatility": 0.1498847819868723,
+          "sharpe": 1.7383468294122217,
+          "maxDrawdown": -0.10808722578835173,
+          "calmar": 2.59701720287565,
+          "score": 1.5505525115193597,
+          "endingValue": 205.7314484023283
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.18527096659314268,
+          "volatility": 0.1743847665856054,
+          "sharpe": 1.05995958144619,
+          "maxDrawdown": -0.16103685939445678,
+          "calmar": 1.1504879521981046,
+          "score": 0.8060245113707712,
+          "endingValue": 211.04410740712925
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 73.4362631401788,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.25549504046444055
+      }
+    },
+    {
+      "name": "S6 Credit-Liquidity Accelerator+",
+      "group": "Custom Macro",
+      "note": "Upgraded credit-liquidity accelerator: uses high-yield/Treasury relative momentum as a credit cycle proxy before increasing equity beta.",
+      "fullSample": {
+        "cagr": 0.16307991935433663,
+        "volatility": 0.13006119042406172,
+        "sharpe": 1.2295974578665914,
+        "maxDrawdown": -0.18472397825874753,
+        "winRate": 0.6149068322981367,
+        "endingValue": 771.3307085146239,
+        "annualTurnover": 6.2185370121896515,
+        "totalCost": 17.211341722829427
+      },
+      "parameters": {
+        "current": {
+          "creditProxy": "HYG minus IEF",
+          "targetVol": 0.125,
+          "riskOffHedge": 0.52
+        },
+        "candidateGrid": {
+          "targetVol": [
+            0.1,
+            0.125,
+            0.15
+          ],
+          "creditWindow": [
+            63,
+            126,
+            189
+          ],
+          "riskOffHedge": [
+            0.4,
+            0.52,
+            0.65
+          ]
+        },
+        "trainingMeaning": "Train the credit-cycle trigger before increasing equity beta."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.18498976780531584,
+          "volatility": 0.1370210659675559,
+          "sharpe": 1.3132596276227226,
+          "maxDrawdown": -0.14357747729509918,
+          "calmar": 1.2884316627537669,
+          "score": 0.9631385835268452,
+          "endingValue": 272.8539750456028
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.2568838429915976,
+          "volatility": 0.10564480110939714,
+          "sharpe": 2.2348577132757725,
+          "maxDrawdown": -0.0633578172539766,
+          "calmar": 4.054493259479745,
+          "score": 2.2156981670926235,
+          "endingValue": 194.77171145652562
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.0768270375447968,
+          "volatility": 0.12230765542159518,
+          "sharpe": 0.663126132075152,
+          "maxDrawdown": -0.1436743474873864,
+          "calmar": 0.5347303738514747,
+          "score": 0.4444584368405222,
+          "endingValue": 138.43865266720852
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 94.34742298067611,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.5626105500159471
+      }
+    },
+    {
+      "name": "S7 Revision-Proxy Growth Rank+",
+      "group": "Custom AI",
+      "note": "Upgraded revision proxy: adds short-term acceleration and trend confirmation to the price-based earnings-revision proxy.",
+      "fullSample": {
+        "cagr": 0.1666787634566964,
+        "volatility": 0.13414372197646998,
+        "sharpe": 1.219452832694444,
+        "maxDrawdown": -0.19147381820008702,
+        "winRate": 0.6770186335403726,
+        "endingValue": 800.7089140959473,
+        "annualTurnover": 7.280702330012627,
+        "totalCost": 16.061178357885108
+      },
+      "parameters": {
+        "current": {
+          "features": "1M/3M/6M momentum + vol stability + 200D trend",
+          "targetVol": 0.115
+        },
+        "candidateGrid": {
+          "accelerationWeight": [
+            0.1,
+            0.15,
+            0.25
+          ],
+          "targetVol": [
+            0.095,
+            0.115,
+            0.13
+          ],
+          "topN": [
+            5,
+            6,
+            8
+          ]
+        },
+        "trainingMeaning": "Train the price-based revision proxy and volatility-stability penalty."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1828419393664784,
+          "volatility": 0.11555037780513684,
+          "sharpe": 1.5186556745834492,
+          "maxDrawdown": -0.12879748370464095,
+          "calmar": 1.4196080086919438,
+          "score": 1.0963977077996712,
+          "endingValue": 269.9422853897103
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.19121389441908732,
+          "volatility": 0.12200545959382417,
+          "sharpe": 1.5027704535279052,
+          "maxDrawdown": -0.07242268316433953,
+          "calmar": 2.64024869094107,
+          "score": 1.4610790430534444,
+          "endingValue": 166.56040066541394
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.14181008315976085,
+          "volatility": 0.1180387460607059,
+          "sharpe": 1.1808767009618644,
+          "maxDrawdown": -0.11173687348469286,
+          "calmar": 1.2691431103912874,
+          "score": 0.9009637612017559,
+          "endingValue": 179.09436020682952
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 77.73777283135814,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.13606588074687942
+      }
+    },
+    {
+      "name": "S8 Trend-Guarded Reversion+",
+      "group": "Custom Tactical",
+      "note": "Upgraded guarded reversion: buys pullbacks only above 200-day trend, with drawdown and volatility filters.",
+      "fullSample": {
+        "cagr": 0.11867323219871606,
+        "volatility": 0.10502574220203507,
+        "sharpe": 1.1230435433371735,
+        "maxDrawdown": -0.16979871186495132,
+        "winRate": 0.6273291925465838,
+        "endingValue": 453.79295253933554,
+        "annualTurnover": 12.98267925975097,
+        "totalCost": 21.368734673403832
+      },
+      "parameters": {
+        "current": {
+          "reversion": "20D z-score",
+          "guard": "200D trend + drawdown filter",
+          "targetVol": 0.09
+        },
+        "candidateGrid": {
+          "zWindow": [
+            15,
+            20,
+            30
+          ],
+          "drawdownLimit": [
+            -0.12,
+            -0.16,
+            -0.2
+          ],
+          "targetVol": [
+            0.075,
+            0.09,
+            0.105
+          ]
+        },
+        "trainingMeaning": "Train the pullback signal only under trend-confirmed conditions."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1341425440436781,
+          "volatility": 0.08985922776769474,
+          "sharpe": 1.4512906913891428,
+          "maxDrawdown": -0.08030797923372202,
+          "calmar": 1.6703513813151767,
+          "score": 1.146155427596295,
+          "endingValue": 210.51894699963077
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.10318502021358711,
+          "volatility": 0.09766322974122234,
+          "sharpe": 1.0560601626562645,
+          "maxDrawdown": -0.08203429463731693,
+          "calmar": 1.2578278471190614,
+          "score": 0.8443719978673058,
+          "endingValue": 133.15410184036057
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.11631841977587176,
+          "volatility": 0.09789418317465984,
+          "sharpe": 1.1708360123606287,
+          "maxDrawdown": -0.09006149644893802,
+          "calmar": 1.291544382030345,
+          "score": 0.9053333705264927,
+          "endingValue": 162.178337006184
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 41.42647355187151,
+        "decision": "Watch",
+        "reason": "Research candidate only; evidence is not strong enough for approval.",
+        "stabilityPenalty": 0.16583215951076988
+      }
+    },
+    {
+      "name": "S9 Sector-Breadth Rotation+",
+      "group": "Custom Macro",
+      "note": "Upgraded sector-breadth rotation: sector ETF breadth and leading-sector momentum decide risk budget, then stocks receive allocation.",
+      "fullSample": {
+        "cagr": 0.16620129126476657,
+        "volatility": 0.13092666843086626,
+        "sharpe": 1.242974278909394,
+        "maxDrawdown": -0.18546598469112974,
+        "winRate": 0.6583850931677019,
+        "endingValue": 798.065732190517,
+        "annualTurnover": 7.362739914903672,
+        "totalCost": 15.174108180035343
+      },
+      "parameters": {
+        "current": {
+          "breadth": "sector ETFs above 100D MA",
+          "riskBudget": ".08 to .12",
+          "leaderFactor": "sector momentum"
+        },
+        "candidateGrid": {
+          "breadthThreshold": [
+            0.45,
+            0.5,
+            0.6
+          ],
+          "riskOnVol": [
+            0.1,
+            0.12,
+            0.14
+          ],
+          "riskOffVol": [
+            0.06,
+            0.08,
+            0.1
+          ]
+        },
+        "trainingMeaning": "Train when broad market participation is strong enough to use a higher equity budget."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.18598049754964086,
+          "volatility": 0.12251206331557263,
+          "sharpe": 1.4605014636900464,
+          "maxDrawdown": -0.1379986168054117,
+          "calmar": 1.3476982730333245,
+          "score": 1.047735278889977,
+          "endingValue": 274.20581898968965
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.11057890954584892,
+          "volatility": 0.11232608694584609,
+          "sharpe": 0.9916374856475086,
+          "maxDrawdown": -0.07356706048301032,
+          "calmar": 1.5031035468840865,
+          "score": 0.8898112265583038,
+          "endingValue": 135.7730296480345
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.18725449865772004,
+          "volatility": 0.11027611267760254,
+          "sharpe": 1.612701573537932,
+          "maxDrawdown": -0.06609002602018155,
+          "calmar": 2.833324632078964,
+          "score": 1.5691040951137403,
+          "endingValue": 212.60047780587917
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 61.2184858193875,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.23890782670718763
+      }
+    },
+    {
+      "name": "S10 Defensive Growth Stabilizer+",
+      "group": "Custom Risk",
+      "note": "Upgraded defensive stabilizer: combines quality proxy with volatility stress hedge, designed for smoother downside behavior.",
+      "fullSample": {
+        "cagr": 0.14207585508141096,
+        "volatility": 0.12646835063258852,
+        "sharpe": 1.1164105418693664,
+        "maxDrawdown": -0.2192075492020954,
+        "winRate": 0.6583850931677019,
+        "endingValue": 601.2489599179669,
+        "annualTurnover": 4.6391018944732005,
+        "totalCost": 9.871101835256244
+      },
+      "parameters": {
+        "current": {
+          "qualityProxy": true,
+          "stress": "SPY vol/drawdown",
+          "hedgeSleeve": 0.34
+        },
+        "candidateGrid": {
+          "hedgeSleeve": [
+            0.25,
+            0.34,
+            0.45
+          ],
+          "targetVol": [
+            0.08,
+            0.095,
+            0.11
+          ],
+          "stressVol": [
+            0.18,
+            0.22,
+            0.26
+          ]
+        },
+        "trainingMeaning": "Train defensive growth allocation and stress hedge size."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.16367803149058657,
+          "volatility": 0.1021306268085266,
+          "sharpe": 1.5424400142422439,
+          "maxDrawdown": -0.06936614412931907,
+          "calmar": 2.359624187636005,
+          "score": 1.3950486482868794,
+          "endingValue": 245.08652731151147
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.2026972098489359,
+          "volatility": 0.12167408513077607,
+          "sharpe": 1.5864552229075495,
+          "maxDrawdown": -0.08987442273789226,
+          "calmar": 2.255338100363409,
+          "score": 1.3815188381436307,
+          "endingValue": 171.28551523289158
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.08576537385620298,
+          "volatility": 0.10620301549322526,
+          "sharpe": 0.8252937878539676,
+          "maxDrawdown": -0.1027060318172276,
+          "calmar": 0.8350568349172357,
+          "score": 0.6116286518277333,
+          "endingValue": 143.55981209651446
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 71.43725022703141,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.32420131025292265
+      }
+    },
+    {
+      "name": "S11 Tail-Risk Shock Absorber+",
+      "group": "Custom Risk",
+      "note": "Upgraded tail-risk absorber: reacts to drawdown, volatility, credit stress and combined regime score before moving into hedges.",
+      "fullSample": {
+        "cagr": 0.182382293038577,
+        "volatility": 0.12889023489567666,
+        "sharpe": 1.3677710760104407,
+        "maxDrawdown": -0.19801557373281164,
+        "winRate": 0.7142857142857143,
+        "endingValue": 960.6466148218071,
+        "annualTurnover": 5.5143068578389025,
+        "totalCost": 17.03826570912619
+      },
+      "parameters": {
+        "current": {
+          "shockRules": "drawdown + vol + credit + regime",
+          "hedgeSleeve": 0.65
+        },
+        "candidateGrid": {
+          "hedgeSleeve": [
+            0.5,
+            0.65,
+            0.8
+          ],
+          "volShock": [
+            0.24,
+            0.28,
+            0.32
+          ],
+          "drawdownShock": [
+            -0.08,
+            -0.1,
+            -0.14
+          ]
+        },
+        "trainingMeaning": "Train tail-risk trigger thresholds and hedge severity."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.23566509071656205,
+          "volatility": 0.11399116793508363,
+          "sharpe": 1.9271017824218721,
+          "maxDrawdown": -0.1058008225333974,
+          "calmar": 2.227441007296246,
+          "score": 1.5248480220253766,
+          "endingValue": 349.5255518762484
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.23231166144487414,
+          "volatility": 0.1353876203645905,
+          "sharpe": 1.621520365290831,
+          "maxDrawdown": -0.08943047661120151,
+          "calmar": 2.5976788925641956,
+          "score": 1.5000447844890126,
+          "endingValue": 183.8755605525384
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.09823423429336686,
+          "volatility": 0.11741208100913605,
+          "sharpe": 0.853976953549874,
+          "maxDrawdown": -0.13300001068578393,
+          "calmar": 0.7386032060211473,
+          "score": 0.592570589835209,
+          "endingValue": 150.94680521276356
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 73.91203114104503,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.37674540964544084
+      }
+    },
+    {
+      "name": "S12 Adaptive Volatility Compounder+",
+      "group": "Custom Tactical",
+      "note": "Upgraded adaptive volatility compounder: target volatility changes with market stress and stock selection includes trend confirmation.",
+      "fullSample": {
+        "cagr": 0.17559409544393545,
+        "volatility": 0.15019788741178336,
+        "sharpe": 1.1551267965434973,
+        "maxDrawdown": -0.23228289773812283,
+        "winRate": 0.6459627329192547,
+        "endingValue": 886.9487189393051,
+        "annualTurnover": 7.300124706502384,
+        "totalCost": 16.306914057679407
+      },
+      "parameters": {
+        "current": {
+          "targetVol": ".07/.095/.13 by stress",
+          "momentumBlend": "6M + 12-1M",
+          "maxGross": 1.8
+        },
+        "candidateGrid": {
+          "lowStressVol": [
+            0.12,
+            0.13,
+            0.15
+          ],
+          "highStressVol": [
+            0.06,
+            0.07,
+            0.08
+          ],
+          "maxGross": [
+            1.4,
+            1.8,
+            2
+          ]
+        },
+        "trainingMeaning": "Train the dynamic volatility target and leverage cap across regimes."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.19538354586966844,
+          "volatility": 0.13909610145168824,
+          "sharpe": 1.3595821036151239,
+          "maxDrawdown": -0.18615900861587142,
+          "calmar": 1.0495519251116734,
+          "score": 0.9080616232987206,
+          "endingValue": 287.31561923853394
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.1418137780874109,
+          "volatility": 0.12013833455980487,
+          "sharpe": 1.1673486496972105,
+          "maxDrawdown": -0.06761679564746248,
+          "calmar": 2.097315862567541,
+          "score": 1.1477399715692607,
+          "endingValue": 147.2098783851395
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.19452658601779738,
+          "volatility": 0.13641829294609337,
+          "sharpe": 1.3713676194732451,
+          "maxDrawdown": -0.11075242947336994,
+          "calmar": 1.7564091997148528,
+          "score": 1.132962945730079,
+          "endingValue": 218.38246913664833
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 68.06176201151436,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.08814607876623572
+      }
     }
   ],
+  "coreModels": [
+    {
+      "name": "V1 Momentum-Vol Research Model",
+      "group": "Core",
+      "note": "252-day stock momentum; top 3; inverse vol; 10.0% vol target",
+      "fullSample": {
+        "cagr": 0.12585521907429276,
+        "volatility": 0.11394483487388549,
+        "sharpe": 1.0999284305067447,
+        "maxDrawdown": -0.1388468905424649,
+        "winRate": 0.6086956521739131,
+        "endingValue": 494.6692766080021,
+        "annualTurnover": 3.1138055551742583,
+        "totalCost": 4.891118814338805
+      },
+      "parameters": {
+        "current": {
+          "lookbackDays": 252,
+          "skipDays": 21,
+          "topN": 3,
+          "targetVol": 0.1,
+          "maxGross": 2
+        },
+        "candidateGrid": {
+          "lookbackDays": [
+            126,
+            252,
+            378
+          ],
+          "skipDays": [
+            0,
+            21
+          ],
+          "topN": [
+            3,
+            5,
+            8
+          ],
+          "targetVol": [
+            0.08,
+            0.1,
+            0.12
+          ],
+          "maxGross": [
+            1,
+            1.5,
+            2
+          ]
+        },
+        "trainingMeaning": "V1 training means selecting stable momentum, selection and volatility-scaling parameters."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.12404078754058268,
+          "volatility": 0.10197184797750981,
+          "sharpe": 1.2021692671791875,
+          "maxDrawdown": -0.11701400792759142,
+          "calmar": 1.0600507557807903,
+          "score": 0.8472899961721123,
+          "endingValue": 199.67001970817756
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.07616417630907013,
+          "volatility": 0.09168339142454973,
+          "sharpe": 0.8469970916211905,
+          "maxDrawdown": -0.053119003000952736,
+          "calmar": 1.4338404715108086,
+          "score": 0.8059889323826831,
+          "endingValue": 123.86590333059777
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.16574716774284415,
+          "volatility": 0.11559188234785768,
+          "sharpe": 1.3830350104020568,
+          "maxDrawdown": -0.07078386351952537,
+          "calmar": 2.3415953792508604,
+          "score": 1.3177659821042311,
+          "endingValue": 196.18973591217875
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 63.7316445215164,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.23836136947186937
+      }
+    },
+    {
+      "name": "V2 HMM-GARCH-MVO",
+      "group": "V2",
+      "note": "Two-state Gaussian HMM, GARCH(1,1) likelihood grid and capped long-only MVO",
+      "fullSample": {
+        "cagr": 0.2773008267797581,
+        "volatility": 0.19946584191898156,
+        "sharpe": 1.3302609024738576,
+        "maxDrawdown": -0.3245653083128771,
+        "winRate": 0.6521739130434783,
+        "endingValue": 2715.714393816558,
+        "annualTurnover": 9.936277644137618,
+        "totalCost": 53.217720025232154
+      },
+      "parameters": {
+        "current": {
+          "historyDays": 504,
+          "covarianceDays": 252,
+          "lowRiskAversion": 1.5,
+          "highRiskAversion": 6,
+          "maxWeight": 0.6
+        },
+        "candidateGrid": {
+          "historyDays": [
+            504,
+            756,
+            1008
+          ],
+          "covarianceDays": [
+            126,
+            252,
+            378
+          ],
+          "lowRiskAversion": [
+            1.5,
+            3,
+            4
+          ],
+          "highRiskAversion": [
+            6,
+            9,
+            12
+          ],
+          "maxWeight": [
+            0.25,
+            0.35,
+            0.5
+          ],
+          "turnoverPenalty": [
+            0,
+            0.05,
+            0.1
+          ]
+        },
+        "trainingMeaning": "V2 training means estimating HMM/GARCH on the training window and selecting MVO hyperparameters on validation."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.26607427576540643,
+          "volatility": 0.16067206400345738,
+          "sharpe": 1.5579797757790854,
+          "maxDrawdown": -0.1680803969668937,
+          "calmar": 1.5830178924304559,
+          "score": 1.1591882271330356,
+          "endingValue": 403.56992423158005
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.3924374126396599,
+          "volatility": 0.22964912894421735,
+          "sharpe": 1.571318032643312,
+          "maxDrawdown": -0.20581561619997402,
+          "calmar": 1.9067426460894052,
+          "score": 1.2585343468963146,
+          "endingValue": 262.5564746318319
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.24169902516130626,
+          "volatility": 0.22261202309570466,
+          "sharpe": 1.0833753383197462,
+          "maxDrawdown": -0.23581459876066668,
+          "calmar": 1.0249536136929835,
+          "score": 0.7714235264757142,
+          "endingValue": 258.8995830533588
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 59.99629519814747,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.19793378410813672
+      }
+    },
+    {
+      "name": "V3 Boosted Trees + Attribution",
+      "group": "V3",
+      "note": "Walk-forward regularized gradient-boosted decision stumps with additive feature attribution",
+      "fullSample": {
+        "cagr": 0.12539555052557505,
+        "volatility": 0.10876460620063243,
+        "sharpe": 1.1433261273764899,
+        "maxDrawdown": -0.15501552981119027,
+        "winRate": 0.6770186335403726,
+        "endingValue": 490.6082881869892,
+        "annualTurnover": 5.635434998637408,
+        "totalCost": 8.070968933836308
+      },
+      "parameters": {
+        "current": {
+          "rounds": 40,
+          "learningRate": 0.05,
+          "lambda": 2,
+          "topN": 5,
+          "targetVol": 0.1,
+          "maxGross": 2
+        },
+        "candidateGrid": {
+          "rounds": [
+            20,
+            40,
+            60
+          ],
+          "learningRate": [
+            0.03,
+            0.05,
+            0.08
+          ],
+          "lambda": [
+            1,
+            2,
+            5
+          ],
+          "topN": [
+            3,
+            5,
+            8
+          ],
+          "targetVol": [
+            0.08,
+            0.1,
+            0.12
+          ],
+          "featureSet": [
+            "price_only",
+            "price_plus_risk",
+            "price_risk_drawdown"
+          ]
+        },
+        "trainingMeaning": "V3 training means fitting the boosted model on training data and choosing ML hyperparameters by validation performance."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1234471574544469,
+          "volatility": 0.09698133808605196,
+          "sharpe": 1.252662023763464,
+          "maxDrawdown": -0.10085437600414271,
+          "calmar": 1.2240138935505998,
+          "score": 0.9208166411583245,
+          "endingValue": 199.04722239152056
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.15538336392993313,
+          "volatility": 0.07093501530675764,
+          "sharpe": 2.0821787613233234,
+          "maxDrawdown": -0.03940478792334556,
+          "calmar": 3.943261012651599,
+          "score": 2.1160182675986405,
+          "endingValue": 152.36930511269776
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.11860592516383917,
+          "volatility": 0.10127496538508994,
+          "sharpe": 1.155043565901253,
+          "maxDrawdown": -0.10494232569351125,
+          "calmar": 1.1302010354738379,
+          "score": 0.8483356827283641,
+          "endingValue": 163.64375616152614
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 100,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.34039537895171745
+      }
+    }
+  ],
+  "customStrategies": [
+    {
+      "name": "S1 AI Capex Momentum+",
+      "group": "Custom AI",
+      "note": "Upgraded AI infrastructure strategy: 12-1 stock momentum plus QQQ/XLK AI-risk confirmation, volatility targeting and hedge sleeve.",
+      "fullSample": {
+        "cagr": 0.1753076407522327,
+        "volatility": 0.13612551665071423,
+        "sharpe": 1.2579154123946708,
+        "maxDrawdown": -0.18764778566737328,
+        "winRate": 0.6335403726708074,
+        "endingValue": 884.2601339253937,
+        "annualTurnover": 3.3382956294262196,
+        "totalCost": 7.732262339511569
+      },
+      "parameters": {
+        "current": {
+          "aiFactorConfirm": "QQQ/XLK 126D",
+          "stockMomentum": "12-1M + 3M",
+          "targetVol": 0.12,
+          "hedgeSleeve": "IEF/GLD/TLT"
+        },
+        "candidateGrid": {
+          "targetVol": [
+            0.1,
+            0.12,
+            0.14
+          ],
+          "aiWeight": [
+            0.1,
+            0.15,
+            0.25
+          ],
+          "hedgeSleeve": [
+            0.05,
+            0.1,
+            0.2
+          ],
+          "topN": [
+            4,
+            5,
+            6
+          ]
+        },
+        "trainingMeaning": "Train the AI-capex factor weight and hedge sleeve so the strategy does not simply chase technology beta."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1826570913517258,
+          "volatility": 0.12555965484677023,
+          "sharpe": 1.406758069971195,
+          "maxDrawdown": -0.15100803591286782,
+          "calmar": 1.2095852399346456,
+          "score": 0.9808158998761447,
+          "endingValue": 269.6929087442459
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.17079187358190318,
+          "volatility": 0.12016576912712901,
+          "sharpe": 1.3787918758382611,
+          "maxDrawdown": -0.07519381777586398,
+          "calmar": 2.271355260760874,
+          "score": 1.2943435405778934,
+          "endingValue": 158.37034641808992
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.16959345634561251,
+          "volatility": 0.13375381954187462,
+          "sharpe": 1.2365431879671285,
+          "maxDrawdown": -0.11612003134172344,
+          "calmar": 1.4605012966843334,
+          "score": 0.9829828204563356,
+          "endingValue": 199.05015738539177
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 82.17998833922366,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.06808236836332078
+      }
+    },
+    {
+      "name": "S2 Quality Growth Barbell+",
+      "group": "Custom AI",
+      "note": "Upgraded quality-growth barbell: quality proxy, growth acceleration, low-vol hedge that expands during market stress.",
+      "fullSample": {
+        "cagr": 0.30559379363961714,
+        "volatility": 0.19470677613153628,
+        "sharpe": 1.4708450363658165,
+        "maxDrawdown": -0.2763510844197141,
+        "winRate": 0.6956521739130435,
+        "endingValue": 3652.6123651188695,
+        "annualTurnover": 4.062568731666302,
+        "totalCost": 30.578291628562656
+      },
+      "parameters": {
+        "current": {
+          "qualityWeight": 0.52,
+          "growthWeight": 0.4,
+          "lowVolHedge": ".08 to .18"
+        },
+        "candidateGrid": {
+          "qualityWeight": [
+            0.45,
+            0.52,
+            0.6
+          ],
+          "growthWeight": [
+            0.3,
+            0.4,
+            0.5
+          ],
+          "stressHedge": [
+            0.1,
+            0.18,
+            0.25
+          ]
+        },
+        "trainingMeaning": "Train the quality/growth balance and stress hedge intensity."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.314732439429366,
+          "volatility": 0.14817121477356626,
+          "sharpe": 1.9391415467675108,
+          "maxDrawdown": -0.18217968647065952,
+          "calmar": 1.727593484908398,
+          "score": 1.3726737728708334,
+          "endingValue": 504.40044806137803
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.36588963600837365,
+          "volatility": 0.16896420500654424,
+          "sharpe": 1.9494482031717493,
+          "maxDrawdown": -0.10155983038933802,
+          "calmar": 3.6027003452615607,
+          "score": 1.9479058119668216,
+          "endingValue": 248.2254669779634
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.2662362357275183,
+          "volatility": 0.18212869559982336,
+          "sharpe": 1.3897382734969213,
+          "maxDrawdown": -0.14269990567108093,
+          "calmar": 1.8657071598994954,
+          "score": 1.170824380476355,
+          "endingValue": 282.14700069440164
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 100,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.18199790059307244
+      }
+    },
+    {
+      "name": "S3 Crowding-Aware Momentum+",
+      "group": "Custom Risk",
+      "note": "Upgraded anti-crowding momentum: penalizes one-month chase, volatility spikes and crowded momentum ETF conditions.",
+      "fullSample": {
+        "cagr": 0.11042184743189254,
+        "volatility": 0.11660815216240668,
+        "sharpe": 0.958844775578788,
+        "maxDrawdown": -0.16480801383402077,
+        "winRate": 0.6024844720496895,
+        "endingValue": 409.8350210112972,
+        "annualTurnover": 4.9512896692308805,
+        "totalCost": 6.919211271696975
+      },
+      "parameters": {
+        "current": {
+          "momentum": "12-1M",
+          "chasePenalty": "1M",
+          "crowdingProxy": "MTUM",
+          "targetVol": 0.1
+        },
+        "candidateGrid": {
+          "chasePenalty": [
+            0.45,
+            0.65,
+            0.85
+          ],
+          "crowdingPenalty": [
+            0.1,
+            0.2,
+            0.3
+          ],
+          "targetVol": [
+            0.08,
+            0.1,
+            0.12
+          ]
+        },
+        "trainingMeaning": "Train how strongly the model penalizes crowded or overheated momentum."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.10056435492687421,
+          "volatility": 0.10227271879483926,
+          "sharpe": 0.991066073108739,
+          "maxDrawdown": -0.13287898765057893,
+          "calmar": 0.7568115674640759,
+          "score": 0.6597353043730975,
+          "endingValue": 176.23965953469826
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.09430685346189449,
+          "volatility": 0.08244494541071119,
+          "sharpe": 1.1367867340595215,
+          "maxDrawdown": -0.04798451623105693,
+          "calmar": 1.9653600967400489,
+          "score": 1.0963636077256935,
+          "endingValue": 130.0535698235652
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.139688734723171,
+          "volatility": 0.10507151193046699,
+          "sharpe": 1.2952662385094833,
+          "maxDrawdown": -0.09290220560611029,
+          "calmar": 1.5036105312227754,
+          "score": 1.0246627461354891,
+          "endingValue": 177.63683735490662
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 70.83124567287497,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.13333863242795232
+      }
+    },
+    {
+      "name": "S4 Low-Vol Alpha Shield+",
+      "group": "Custom Risk",
+      "note": "Upgraded low-vol shield: medium trend, 200-day trend confirmation, drawdown penalty and lower target volatility.",
+      "fullSample": {
+        "cagr": 0.13405775313874324,
+        "volatility": 0.10574279146370902,
+        "sharpe": 1.2456969843584649,
+        "maxDrawdown": -0.15302127991876568,
+        "winRate": 0.6956521739130435,
+        "endingValue": 547.5035080118057,
+        "annualTurnover": 6.54607022107716,
+        "totalCost": 11.527338497869835
+      },
+      "parameters": {
+        "current": {
+          "trend": "126D + 200D confirm",
+          "volPenalty": 0.65,
+          "targetVol": 0.085
+        },
+        "candidateGrid": {
+          "volPenalty": [
+            0.45,
+            0.65,
+            0.85
+          ],
+          "targetVol": [
+            0.07,
+            0.085,
+            0.1
+          ],
+          "topN": [
+            5,
+            6,
+            8
+          ]
+        },
+        "trainingMeaning": "Train the low-volatility penalty and conservative risk budget."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1533335853602633,
+          "volatility": 0.10319583004896103,
+          "sharpe": 1.4404467195909685,
+          "maxDrawdown": -0.12165641760216661,
+          "calmar": 1.2603822172512547,
+          "score": 1.0141500472310956,
+          "endingValue": 232.48048203042296
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.12309292326980104,
+          "volatility": 0.09240576101272506,
+          "sharpe": 1.3064700356443653,
+          "maxDrawdown": -0.04724794141907318,
+          "calmar": 2.605254738571754,
+          "score": 1.3647631434695833,
+          "endingValue": 140.282219980081
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.12832779605926214,
+          "volatility": 0.08756473603751903,
+          "sharpe": 1.421040768180455,
+          "maxDrawdown": -0.07239680110275104,
+          "calmar": 1.7725616892537777,
+          "score": 1.1639971723470628,
+          "endingValue": 169.98624751019972
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 81.31291619265085,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.05211370750950118
+      }
+    },
+    {
+      "name": "S5 Regime-Switch Equity Hedge+",
+      "group": "Custom Macro",
+      "note": "Upgraded regime hedge: blends SPY trend, HYG/IEF credit momentum, TLT rates signal and volatility stress into a risk-on score.",
+      "fullSample": {
+        "cagr": 0.22048398300982575,
+        "volatility": 0.16580397763931298,
+        "sharpe": 1.2878724317227006,
+        "maxDrawdown": -0.26480820163833096,
+        "winRate": 0.6832298136645962,
+        "endingValue": 1476.0766961190634,
+        "annualTurnover": 8.703948142403947,
+        "totalCost": 30.72163804423294
+      },
+      "parameters": {
+        "current": {
+          "regimeScore": "SPY trend + HYG/IEF + TLT + vol",
+          "hedgeSleeve": ".18 or .62"
+        },
+        "candidateGrid": {
+          "regimeThreshold": [
+            0,
+            0.15,
+            0.3
+          ],
+          "riskOnEquity": [
+            0.75,
+            0.82,
+            0.9
+          ],
+          "riskOffHedge": [
+            0.5,
+            0.62,
+            0.75
+          ]
+        },
+        "trainingMeaning": "Train the macro regime threshold and how much exposure shifts into hedges."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.23560512743139173,
+          "volatility": 0.129382814432766,
+          "sharpe": 1.711101980586738,
+          "maxDrawdown": -0.08818427876061741,
+          "calmar": 2.671736172736173,
+          "score": 1.5626983152088223,
+          "endingValue": 349.4252577916641
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.28070438478345405,
+          "volatility": 0.1498847819868723,
+          "sharpe": 1.7383468294122217,
+          "maxDrawdown": -0.10808722578835173,
+          "calmar": 2.59701720287565,
+          "score": 1.5505525115193597,
+          "endingValue": 205.7314484023283
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.18527096659314268,
+          "volatility": 0.1743847665856054,
+          "sharpe": 1.05995958144619,
+          "maxDrawdown": -0.16103685939445678,
+          "calmar": 1.1504879521981046,
+          "score": 0.8060245113707712,
+          "endingValue": 211.04410740712925
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 73.4362631401788,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.25549504046444055
+      }
+    },
+    {
+      "name": "S6 Credit-Liquidity Accelerator+",
+      "group": "Custom Macro",
+      "note": "Upgraded credit-liquidity accelerator: uses high-yield/Treasury relative momentum as a credit cycle proxy before increasing equity beta.",
+      "fullSample": {
+        "cagr": 0.16307991935433663,
+        "volatility": 0.13006119042406172,
+        "sharpe": 1.2295974578665914,
+        "maxDrawdown": -0.18472397825874753,
+        "winRate": 0.6149068322981367,
+        "endingValue": 771.3307085146239,
+        "annualTurnover": 6.2185370121896515,
+        "totalCost": 17.211341722829427
+      },
+      "parameters": {
+        "current": {
+          "creditProxy": "HYG minus IEF",
+          "targetVol": 0.125,
+          "riskOffHedge": 0.52
+        },
+        "candidateGrid": {
+          "targetVol": [
+            0.1,
+            0.125,
+            0.15
+          ],
+          "creditWindow": [
+            63,
+            126,
+            189
+          ],
+          "riskOffHedge": [
+            0.4,
+            0.52,
+            0.65
+          ]
+        },
+        "trainingMeaning": "Train the credit-cycle trigger before increasing equity beta."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.18498976780531584,
+          "volatility": 0.1370210659675559,
+          "sharpe": 1.3132596276227226,
+          "maxDrawdown": -0.14357747729509918,
+          "calmar": 1.2884316627537669,
+          "score": 0.9631385835268452,
+          "endingValue": 272.8539750456028
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.2568838429915976,
+          "volatility": 0.10564480110939714,
+          "sharpe": 2.2348577132757725,
+          "maxDrawdown": -0.0633578172539766,
+          "calmar": 4.054493259479745,
+          "score": 2.2156981670926235,
+          "endingValue": 194.77171145652562
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.0768270375447968,
+          "volatility": 0.12230765542159518,
+          "sharpe": 0.663126132075152,
+          "maxDrawdown": -0.1436743474873864,
+          "calmar": 0.5347303738514747,
+          "score": 0.4444584368405222,
+          "endingValue": 138.43865266720852
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 94.34742298067611,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.5626105500159471
+      }
+    },
+    {
+      "name": "S7 Revision-Proxy Growth Rank+",
+      "group": "Custom AI",
+      "note": "Upgraded revision proxy: adds short-term acceleration and trend confirmation to the price-based earnings-revision proxy.",
+      "fullSample": {
+        "cagr": 0.1666787634566964,
+        "volatility": 0.13414372197646998,
+        "sharpe": 1.219452832694444,
+        "maxDrawdown": -0.19147381820008702,
+        "winRate": 0.6770186335403726,
+        "endingValue": 800.7089140959473,
+        "annualTurnover": 7.280702330012627,
+        "totalCost": 16.061178357885108
+      },
+      "parameters": {
+        "current": {
+          "features": "1M/3M/6M momentum + vol stability + 200D trend",
+          "targetVol": 0.115
+        },
+        "candidateGrid": {
+          "accelerationWeight": [
+            0.1,
+            0.15,
+            0.25
+          ],
+          "targetVol": [
+            0.095,
+            0.115,
+            0.13
+          ],
+          "topN": [
+            5,
+            6,
+            8
+          ]
+        },
+        "trainingMeaning": "Train the price-based revision proxy and volatility-stability penalty."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1828419393664784,
+          "volatility": 0.11555037780513684,
+          "sharpe": 1.5186556745834492,
+          "maxDrawdown": -0.12879748370464095,
+          "calmar": 1.4196080086919438,
+          "score": 1.0963977077996712,
+          "endingValue": 269.9422853897103
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.19121389441908732,
+          "volatility": 0.12200545959382417,
+          "sharpe": 1.5027704535279052,
+          "maxDrawdown": -0.07242268316433953,
+          "calmar": 2.64024869094107,
+          "score": 1.4610790430534444,
+          "endingValue": 166.56040066541394
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.14181008315976085,
+          "volatility": 0.1180387460607059,
+          "sharpe": 1.1808767009618644,
+          "maxDrawdown": -0.11173687348469286,
+          "calmar": 1.2691431103912874,
+          "score": 0.9009637612017559,
+          "endingValue": 179.09436020682952
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 77.73777283135814,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.13606588074687942
+      }
+    },
+    {
+      "name": "S8 Trend-Guarded Reversion+",
+      "group": "Custom Tactical",
+      "note": "Upgraded guarded reversion: buys pullbacks only above 200-day trend, with drawdown and volatility filters.",
+      "fullSample": {
+        "cagr": 0.11867323219871606,
+        "volatility": 0.10502574220203507,
+        "sharpe": 1.1230435433371735,
+        "maxDrawdown": -0.16979871186495132,
+        "winRate": 0.6273291925465838,
+        "endingValue": 453.79295253933554,
+        "annualTurnover": 12.98267925975097,
+        "totalCost": 21.368734673403832
+      },
+      "parameters": {
+        "current": {
+          "reversion": "20D z-score",
+          "guard": "200D trend + drawdown filter",
+          "targetVol": 0.09
+        },
+        "candidateGrid": {
+          "zWindow": [
+            15,
+            20,
+            30
+          ],
+          "drawdownLimit": [
+            -0.12,
+            -0.16,
+            -0.2
+          ],
+          "targetVol": [
+            0.075,
+            0.09,
+            0.105
+          ]
+        },
+        "trainingMeaning": "Train the pullback signal only under trend-confirmed conditions."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.1341425440436781,
+          "volatility": 0.08985922776769474,
+          "sharpe": 1.4512906913891428,
+          "maxDrawdown": -0.08030797923372202,
+          "calmar": 1.6703513813151767,
+          "score": 1.146155427596295,
+          "endingValue": 210.51894699963077
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.10318502021358711,
+          "volatility": 0.09766322974122234,
+          "sharpe": 1.0560601626562645,
+          "maxDrawdown": -0.08203429463731693,
+          "calmar": 1.2578278471190614,
+          "score": 0.8443719978673058,
+          "endingValue": 133.15410184036057
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.11631841977587176,
+          "volatility": 0.09789418317465984,
+          "sharpe": 1.1708360123606287,
+          "maxDrawdown": -0.09006149644893802,
+          "calmar": 1.291544382030345,
+          "score": 0.9053333705264927,
+          "endingValue": 162.178337006184
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 41.42647355187151,
+        "decision": "Watch",
+        "reason": "Research candidate only; evidence is not strong enough for approval.",
+        "stabilityPenalty": 0.16583215951076988
+      }
+    },
+    {
+      "name": "S9 Sector-Breadth Rotation+",
+      "group": "Custom Macro",
+      "note": "Upgraded sector-breadth rotation: sector ETF breadth and leading-sector momentum decide risk budget, then stocks receive allocation.",
+      "fullSample": {
+        "cagr": 0.16620129126476657,
+        "volatility": 0.13092666843086626,
+        "sharpe": 1.242974278909394,
+        "maxDrawdown": -0.18546598469112974,
+        "winRate": 0.6583850931677019,
+        "endingValue": 798.065732190517,
+        "annualTurnover": 7.362739914903672,
+        "totalCost": 15.174108180035343
+      },
+      "parameters": {
+        "current": {
+          "breadth": "sector ETFs above 100D MA",
+          "riskBudget": ".08 to .12",
+          "leaderFactor": "sector momentum"
+        },
+        "candidateGrid": {
+          "breadthThreshold": [
+            0.45,
+            0.5,
+            0.6
+          ],
+          "riskOnVol": [
+            0.1,
+            0.12,
+            0.14
+          ],
+          "riskOffVol": [
+            0.06,
+            0.08,
+            0.1
+          ]
+        },
+        "trainingMeaning": "Train when broad market participation is strong enough to use a higher equity budget."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.18598049754964086,
+          "volatility": 0.12251206331557263,
+          "sharpe": 1.4605014636900464,
+          "maxDrawdown": -0.1379986168054117,
+          "calmar": 1.3476982730333245,
+          "score": 1.047735278889977,
+          "endingValue": 274.20581898968965
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.11057890954584892,
+          "volatility": 0.11232608694584609,
+          "sharpe": 0.9916374856475086,
+          "maxDrawdown": -0.07356706048301032,
+          "calmar": 1.5031035468840865,
+          "score": 0.8898112265583038,
+          "endingValue": 135.7730296480345
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.18725449865772004,
+          "volatility": 0.11027611267760254,
+          "sharpe": 1.612701573537932,
+          "maxDrawdown": -0.06609002602018155,
+          "calmar": 2.833324632078964,
+          "score": 1.5691040951137403,
+          "endingValue": 212.60047780587917
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 61.2184858193875,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.23890782670718763
+      }
+    },
+    {
+      "name": "S10 Defensive Growth Stabilizer+",
+      "group": "Custom Risk",
+      "note": "Upgraded defensive stabilizer: combines quality proxy with volatility stress hedge, designed for smoother downside behavior.",
+      "fullSample": {
+        "cagr": 0.14207585508141096,
+        "volatility": 0.12646835063258852,
+        "sharpe": 1.1164105418693664,
+        "maxDrawdown": -0.2192075492020954,
+        "winRate": 0.6583850931677019,
+        "endingValue": 601.2489599179669,
+        "annualTurnover": 4.6391018944732005,
+        "totalCost": 9.871101835256244
+      },
+      "parameters": {
+        "current": {
+          "qualityProxy": true,
+          "stress": "SPY vol/drawdown",
+          "hedgeSleeve": 0.34
+        },
+        "candidateGrid": {
+          "hedgeSleeve": [
+            0.25,
+            0.34,
+            0.45
+          ],
+          "targetVol": [
+            0.08,
+            0.095,
+            0.11
+          ],
+          "stressVol": [
+            0.18,
+            0.22,
+            0.26
+          ]
+        },
+        "trainingMeaning": "Train defensive growth allocation and stress hedge size."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.16367803149058657,
+          "volatility": 0.1021306268085266,
+          "sharpe": 1.5424400142422439,
+          "maxDrawdown": -0.06936614412931907,
+          "calmar": 2.359624187636005,
+          "score": 1.3950486482868794,
+          "endingValue": 245.08652731151147
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.2026972098489359,
+          "volatility": 0.12167408513077607,
+          "sharpe": 1.5864552229075495,
+          "maxDrawdown": -0.08987442273789226,
+          "calmar": 2.255338100363409,
+          "score": 1.3815188381436307,
+          "endingValue": 171.28551523289158
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.08576537385620298,
+          "volatility": 0.10620301549322526,
+          "sharpe": 0.8252937878539676,
+          "maxDrawdown": -0.1027060318172276,
+          "calmar": 0.8350568349172357,
+          "score": 0.6116286518277333,
+          "endingValue": 143.55981209651446
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 71.43725022703141,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.32420131025292265
+      }
+    },
+    {
+      "name": "S11 Tail-Risk Shock Absorber+",
+      "group": "Custom Risk",
+      "note": "Upgraded tail-risk absorber: reacts to drawdown, volatility, credit stress and combined regime score before moving into hedges.",
+      "fullSample": {
+        "cagr": 0.182382293038577,
+        "volatility": 0.12889023489567666,
+        "sharpe": 1.3677710760104407,
+        "maxDrawdown": -0.19801557373281164,
+        "winRate": 0.7142857142857143,
+        "endingValue": 960.6466148218071,
+        "annualTurnover": 5.5143068578389025,
+        "totalCost": 17.03826570912619
+      },
+      "parameters": {
+        "current": {
+          "shockRules": "drawdown + vol + credit + regime",
+          "hedgeSleeve": 0.65
+        },
+        "candidateGrid": {
+          "hedgeSleeve": [
+            0.5,
+            0.65,
+            0.8
+          ],
+          "volShock": [
+            0.24,
+            0.28,
+            0.32
+          ],
+          "drawdownShock": [
+            -0.08,
+            -0.1,
+            -0.14
+          ]
+        },
+        "trainingMeaning": "Train tail-risk trigger thresholds and hedge severity."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.23566509071656205,
+          "volatility": 0.11399116793508363,
+          "sharpe": 1.9271017824218721,
+          "maxDrawdown": -0.1058008225333974,
+          "calmar": 2.227441007296246,
+          "score": 1.5248480220253766,
+          "endingValue": 349.5255518762484
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.23231166144487414,
+          "volatility": 0.1353876203645905,
+          "sharpe": 1.621520365290831,
+          "maxDrawdown": -0.08943047661120151,
+          "calmar": 2.5976788925641956,
+          "score": 1.5000447844890126,
+          "endingValue": 183.8755605525384
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.09823423429336686,
+          "volatility": 0.11741208100913605,
+          "sharpe": 0.853976953549874,
+          "maxDrawdown": -0.13300001068578393,
+          "calmar": 0.7386032060211473,
+          "score": 0.592570589835209,
+          "endingValue": 150.94680521276356
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 73.91203114104503,
+        "decision": "Activate",
+        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+        "stabilityPenalty": 0.37674540964544084
+      }
+    },
+    {
+      "name": "S12 Adaptive Volatility Compounder+",
+      "group": "Custom Tactical",
+      "note": "Upgraded adaptive volatility compounder: target volatility changes with market stress and stock selection includes trend confirmation.",
+      "fullSample": {
+        "cagr": 0.17559409544393545,
+        "volatility": 0.15019788741178336,
+        "sharpe": 1.1551267965434973,
+        "maxDrawdown": -0.23228289773812283,
+        "winRate": 0.6459627329192547,
+        "endingValue": 886.9487189393051,
+        "annualTurnover": 7.300124706502384,
+        "totalCost": 16.306914057679407
+      },
+      "parameters": {
+        "current": {
+          "targetVol": ".07/.095/.13 by stress",
+          "momentumBlend": "6M + 12-1M",
+          "maxGross": 1.8
+        },
+        "candidateGrid": {
+          "lowStressVol": [
+            0.12,
+            0.13,
+            0.15
+          ],
+          "highStressVol": [
+            0.06,
+            0.07,
+            0.08
+          ],
+          "maxGross": [
+            1.4,
+            1.8,
+            2
+          ]
+        },
+        "trainingMeaning": "Train the dynamic volatility target and leverage cap across regimes."
+      },
+      "splitResults": {
+        "train": {
+          "start": "2013-01-31",
+          "end": "2018-12-31",
+          "observations": 72,
+          "cagr": 0.19538354586966844,
+          "volatility": 0.13909610145168824,
+          "sharpe": 1.3595821036151239,
+          "maxDrawdown": -0.18615900861587142,
+          "calmar": 1.0495519251116734,
+          "score": 0.9080616232987206,
+          "endingValue": 287.31561923853394
+        },
+        "validation": {
+          "start": "2019-01-31",
+          "end": "2021-12-31",
+          "observations": 36,
+          "cagr": 0.1418137780874109,
+          "volatility": 0.12013833455980487,
+          "sharpe": 1.1673486496972105,
+          "maxDrawdown": -0.06761679564746248,
+          "calmar": 2.097315862567541,
+          "score": 1.1477399715692607,
+          "endingValue": 147.2098783851395
+        },
+        "test": {
+          "start": "2022-01-31",
+          "end": "2026-06-24",
+          "observations": 54,
+          "cagr": 0.19452658601779738,
+          "volatility": 0.13641829294609337,
+          "sharpe": 1.3713676194732451,
+          "maxDrawdown": -0.11075242947336994,
+          "calmar": 1.7564091997148528,
+          "score": 1.132962945730079,
+          "endingValue": 218.38246913664833
+        }
+      },
+      "selectedStatus": "baseline_current_parameters_not_final",
+      "approval": {
+        "score": 68.06176201151436,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.08814607876623572
+      }
+    }
+  ],
+  "approvalScorecard": [
+    {
+      "rank": 1,
+      "name": "V3 Boosted Trees + Attribution",
+      "group": "V3",
+      "score": 100,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 2.0821787613233234,
+      "testSharpe": 1.155043565901253,
+      "maxDrawdown": -0.15501552981119027,
+      "annualTurnover": 5.635434998637408
+    },
+    {
+      "rank": 2,
+      "name": "S2 Quality Growth Barbell+",
+      "group": "Custom AI",
+      "score": 100,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.9494482031717493,
+      "testSharpe": 1.3897382734969213,
+      "maxDrawdown": -0.2763510844197141,
+      "annualTurnover": 4.062568731666302
+    },
+    {
+      "rank": 3,
+      "name": "S6 Credit-Liquidity Accelerator+",
+      "group": "Custom Macro",
+      "score": 94.34742298067611,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 2.2348577132757725,
+      "testSharpe": 0.663126132075152,
+      "maxDrawdown": -0.18472397825874753,
+      "annualTurnover": 6.2185370121896515
+    },
+    {
+      "rank": 4,
+      "name": "S1 AI Capex Momentum+",
+      "group": "Custom AI",
+      "score": 82.17998833922366,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.3787918758382611,
+      "testSharpe": 1.2365431879671285,
+      "maxDrawdown": -0.18764778566737328,
+      "annualTurnover": 3.3382956294262196
+    },
+    {
+      "rank": 5,
+      "name": "S4 Low-Vol Alpha Shield+",
+      "group": "Custom Risk",
+      "score": 81.31291619265085,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.3064700356443653,
+      "testSharpe": 1.421040768180455,
+      "maxDrawdown": -0.15302127991876568,
+      "annualTurnover": 6.54607022107716
+    },
+    {
+      "rank": 6,
+      "name": "S7 Revision-Proxy Growth Rank+",
+      "group": "Custom AI",
+      "score": 77.73777283135814,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.5027704535279052,
+      "testSharpe": 1.1808767009618644,
+      "maxDrawdown": -0.19147381820008702,
+      "annualTurnover": 7.280702330012627
+    },
+    {
+      "rank": 7,
+      "name": "S11 Tail-Risk Shock Absorber+",
+      "group": "Custom Risk",
+      "score": 73.91203114104503,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.621520365290831,
+      "testSharpe": 0.853976953549874,
+      "maxDrawdown": -0.19801557373281164,
+      "annualTurnover": 5.5143068578389025
+    },
+    {
+      "rank": 8,
+      "name": "S5 Regime-Switch Equity Hedge+",
+      "group": "Custom Macro",
+      "score": 73.4362631401788,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.7383468294122217,
+      "testSharpe": 1.05995958144619,
+      "maxDrawdown": -0.26480820163833096,
+      "annualTurnover": 8.703948142403947
+    },
+    {
+      "rank": 9,
+      "name": "S10 Defensive Growth Stabilizer+",
+      "group": "Custom Risk",
+      "score": 71.43725022703141,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.5864552229075495,
+      "testSharpe": 0.8252937878539676,
+      "maxDrawdown": -0.2192075492020954,
+      "annualTurnover": 4.6391018944732005
+    },
+    {
+      "rank": 10,
+      "name": "S3 Crowding-Aware Momentum+",
+      "group": "Custom Risk",
+      "score": 70.83124567287497,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.1367867340595215,
+      "testSharpe": 1.2952662385094833,
+      "maxDrawdown": -0.16480801383402077,
+      "annualTurnover": 4.9512896692308805
+    },
+    {
+      "rank": 11,
+      "name": "S12 Adaptive Volatility Compounder+",
+      "group": "Custom Tactical",
+      "score": 68.06176201151436,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 1.1673486496972105,
+      "testSharpe": 1.3713676194732451,
+      "maxDrawdown": -0.23228289773812283,
+      "annualTurnover": 7.300124706502384
+    },
+    {
+      "rank": 12,
+      "name": "V1 Momentum-Vol Research Model",
+      "group": "Core",
+      "score": 63.7316445215164,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 0.8469970916211905,
+      "testSharpe": 1.3830350104020568,
+      "maxDrawdown": -0.1388468905424649,
+      "annualTurnover": 3.1138055551742583
+    },
+    {
+      "rank": 13,
+      "name": "S9 Sector-Breadth Rotation+",
+      "group": "Custom Macro",
+      "score": 61.2184858193875,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 0.9916374856475086,
+      "testSharpe": 1.612701573537932,
+      "maxDrawdown": -0.18546598469112974,
+      "annualTurnover": 7.362739914903672
+    },
+    {
+      "rank": 14,
+      "name": "V2 HMM-GARCH-MVO",
+      "group": "V2",
+      "score": 59.99629519814747,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 1.571318032643312,
+      "testSharpe": 1.0833753383197462,
+      "maxDrawdown": -0.3245653083128771,
+      "annualTurnover": 9.936277644137618
+    },
+    {
+      "rank": 15,
+      "name": "S8 Trend-Guarded Reversion+",
+      "group": "Custom Tactical",
+      "score": 41.42647355187151,
+      "decision": "Watch",
+      "reason": "Research candidate only; evidence is not strong enough for approval.",
+      "validationSharpe": 1.0560601626562645,
+      "testSharpe": 1.1708360123606287,
+      "maxDrawdown": -0.16979871186495132,
+      "annualTurnover": 12.98267925975097
+    }
+  ],
+  "paperPortfolio": {
+    "selectedStrategy": "V3 Boosted Trees + Attribution",
+    "capital": 1000000,
+    "latestRebalanceDate": "2026-06-01",
+    "mode": "Paper portfolio target allocation; no live capital or brokerage execution.",
+    "holdings": [
+      {
+        "symbol": "CAT",
+        "weight": 0.0813537981482999,
+        "dollarValue": 81353.7981482999
+      },
+      {
+        "symbol": "AVGO",
+        "weight": 0.07880584469409722,
+        "dollarValue": 78805.84469409722
+      },
+      {
+        "symbol": "CRM",
+        "weight": 0.07461441119218933,
+        "dollarValue": 74614.41119218932
+      },
+      {
+        "symbol": "ORCL",
+        "weight": 0.05683639779820357,
+        "dollarValue": 56836.39779820357
+      },
+      {
+        "symbol": "AMD",
+        "weight": 0.046025489712876816,
+        "dollarValue": 46025.48971287681
+      }
+    ],
+    "riskChecks": [
+      {
+        "name": "Max drawdown limit",
+        "status": "OK",
+        "value": -0.15501552981119027
+      },
+      {
+        "name": "Turnover limit",
+        "status": "Watch",
+        "value": 5.635434998637408
+      },
+      {
+        "name": "Top holding concentration",
+        "status": "OK",
+        "value": 0.0813537981482999
+      }
+    ]
+  },
   "nextSteps": [
-    "Run parameter grid search on the validation period.",
+    "Run parameter grid search on the validation period for all 15 strategies.",
     "Keep the final test period untouched until parameter selection is complete.",
     "Add walk-forward monthly parameter selection after the initial grid search.",
     "Record every parameter change in paper/strategy_research_log.md and results/strategy_change_log.csv."
