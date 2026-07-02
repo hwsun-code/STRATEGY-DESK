@@ -1,0 +1,13 @@
+{
+  "name": "strategy-desk-live",
+  "version": "3.5.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo Static RiskDesk build ready",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.2.0"
+  }
+}

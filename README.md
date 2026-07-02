@@ -1,55 +1,37 @@
-# RiskDesk
+# RiskDesk Strategy Desk
 
-RiskDesk is an applied-mathematics research dashboard for global liquid ETF allocation.
+RiskDesk is an applied-mathematics research dashboard for US equity strategy backtesting, forward prediction, and paper-trading monitoring.
 
-## Research Structure
+## Current Research Structure
 
-- 24 liquid ETFs form the investable universe.
-- 12 fixed strategies serve as reference strategies.
-- V1, V2, and V3 are the three tunable core research models.
-- SPY, equal weight, and 60/40 portfolios are benchmarks.
+- Investable universe: curated US individual stocks.
+- Risk-factor layer: ETFs are used for benchmark, hedge, macro/risk attribution, and SPY-relative checks.
+- Strategy set: 15 research strategies, including V1, V2, V3, and S1-S12.
+- Main ranking metric: Sharpe Ratio.
+- Sanity check: SPY Active Information Ratio, used to check whether raw Sharpe is more than broad-market beta.
 
-## Core Models
+## Dynamic Deployment Mode
 
-### V1: Cross-Sectional Momentum + Volatility Scaling
+This release is Netlify-ready.
 
-Ranks ETFs using 12-minus-1-month momentum, selects the top three positive signals, applies inverse-volatility weights, and scales exposure toward a 10% annual volatility target.
+- Publish directory: project root.
+- Functions directory: `netlify/functions`.
+- Live quote endpoint: `/api/quotes?symbols=AAPL,MSFT,NVDA`.
+- Forecast ledger endpoint: `/api/ledger`.
+- The dashboard calls `/api/quotes` first, then falls back to public browser quote sources, then embedded snapshot data.
+- The browser refreshes live quotes every 5 minutes.
+- Forecast rows are saved locally and, after Netlify deployment, also saved server-side through Netlify Blobs.
 
-### V2: HMM + GARCH + Constrained MVO
+This means the deployed website can refresh selected holdings from server-side market quote calls instead of being only a local `file://` HTML snapshot.
 
-Uses a two-state Gaussian hidden Markov model for regime probabilities, GARCH(1,1) likelihood search for conditional volatility, and capped long-only mean-variance optimization for portfolio weights.
+## Backtest vs Forecast
 
-### V3: Boosted Trees + Additive Attribution
+- Backtest uses realized historical prices and weekly walk-forward strategy rules.
+- Forward prediction records expected return, predicted price, and Buy/Hold/Reduce signal.
+- After the forecast horizon passes, realized prices are compared against predicted returns in the paper-trading evaluation ledger.
 
-Uses expanding walk-forward gradient-boosted decision stumps to predict next-month ETF returns from momentum, volatility, trend, and drawdown features. Additive tree contributions provide model interpretation.
+## Important Limitation
 
-V3 is a local boosted-tree implementation. It is not the external XGBoost or TreeSHAP package.
+The current embedded research dataset is still a generated snapshot. A fully live production version requires scheduled data refresh, persistent storage, and an authenticated market-data provider such as Alpaca, Finnhub, Polygon, or another approved source.
 
-## Backtest Convention
-
-- Monthly decisions use prior-close information only.
-- Transaction cost assumption: 5 basis points per unit of one-way turnover.
-- Core models use a common 85-month comparison sample.
-- Results are historical simulations, not investment advice or guaranteed forecasts.
-
-## Run the Dashboard
-
-Open `index.html` in a browser. All required market snapshots and backtest results are embedded in the file.
-
-## Rebuild Research Data
-
-The `scripts` directory contains the data snapshot and backtest builders. They require a modern Node.js runtime.
-
-## Known Limitations
-
-- Current-universe survivorship bias is not eliminated.
-- Quality, value, dividend, and tail-risk reference strategies use ETF proxies.
-- The current Sharpe calculations use a zero risk-free-rate assumption.
-- Parameter robustness, final untouched testing, and forward paper tracking remain future work.
-
-## Data Sources
-
-- Public Yahoo Finance chart endpoint for adjusted ETF price histories.
-- Federal Reserve Bank of St. Louis FRED for macroeconomic observations.
-- ETF issuer websites for fund identity and classification metadata.
-
+This dashboard is for research and education only. It is not investment advice.

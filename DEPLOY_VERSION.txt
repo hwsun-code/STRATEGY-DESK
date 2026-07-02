@@ -1,0 +1,9 @@
+RiskDesk live weekly auto update release
+Version: 2026-07-03-live-weekly-ledger
+Generated: 2026-07-03
+
+Includes:
+- 5-minute quote refresh through Netlify Functions
+- Server-side forecast ledger endpoint
+- Weekly strategy rebalance data
+- 15-strategy dashboard release files

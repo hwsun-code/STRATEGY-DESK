@@ -15,14 +15,15 @@ const all = embedded("allStrategyBacktests");
 const snapshot = embedded("publicMarketSnapshot");
 const ids = [...html.matchAll(/id="([^"]+)"/g)].map(match => match[1]);
 const duplicateIds = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
-const requiredIds = ["coreBacktestRows", "v1BacktestChart", "v2PublicAllocation", "v3PublicOutput", "correlationHeatmap", "strategyRows"];
+const requiredIds = ["coreBacktestRows", "v1BacktestChart", "correlationHeatmap", "strategyRows", "approvalRows", "trainingParameterRows", "strategyCompareSvgHost", "allocationStrategySelect", "allocationRows", "liveMonitorRows", "experimentRows", "factorAttributionBars", "riskContribution"];
 const missingIds = requiredIds.filter(id => !ids.includes(id));
 const commonLengths = all.coreModels.map(model => model.monthly.length);
 const finiteMetrics = [...all.coreModels, ...all.strategies, ...all.benchmarks].every(item => Object.values(item.metrics).every(Number.isFinite));
 
 const checks = {
   javascript: "valid",
-  etfHistories: Object.keys(snapshot.assets).length,
+  assetHistories: Object.keys(snapshot.assets).length,
+  stockHistories: (snapshot.universe?.stockSymbols || []).filter(symbol => snapshot.assets[symbol]).length,
   coreModels: all.coreModels.length,
   strategies: all.strategies.length,
   benchmarks: all.benchmarks.length,
@@ -33,4 +34,4 @@ const checks = {
   missingIds,
 };
 console.log(JSON.stringify(checks, null, 2));
-if (Object.keys(snapshot.assets).length !== 24 || all.coreModels.length !== 3 || all.strategies.length !== 12 || all.benchmarks.length !== 3 || all.strategyCorrelation.length !== 12 || all.strategyCorrelation.some(row => row.length !== 12) || !finiteMetrics || duplicateIds.length || missingIds.length || new Set(commonLengths).size !== 1) process.exit(1);
+if (((snapshot.universe?.stockSymbols || []).filter(symbol => snapshot.assets[symbol]).length < 20) || all.coreModels.length !== 3 || all.strategies.length !== 12 || all.benchmarks.length !== 3 || all.strategyCorrelation.length !== 15 || all.strategyCorrelation.some(row => row.length !== 15) || !finiteMetrics || duplicateIds.length || missingIds.length || new Set(commonLengths).size !== 1) process.exit(1);

@@ -1,6 +1,8 @@
 {
-  "generatedAt": "2026-06-24T20:39:38.800Z",
-  "status": "All 15 research strategies are now included in train / validation / test evaluation. These are baseline upgraded parameters; full grid search is the next step.",
+  "generatedAt": "2026-07-02T17:04:08.228Z",
+  "version": "3.5",
+  "versionLabel": "Version 3.5 - JP Morgan AI factor enhancement",
+  "status": "All 15 research strategies are included in train / validation / test evaluation. Version 3.5 keeps the JP Morgan research theme and deepens it through shared AI factor scoring, regime, liquidity, quality, low-vol and crowding overlays.",
   "splits": [
     {
       "key": "train",
@@ -26,30 +28,32 @@
   ],
   "objective": {
     "formula": "Score = 0.45 * Sharpe + 0.30 * Calmar - 0.10 * Abs(MaxDrawdown)",
-    "reason": "The objective rewards risk-adjusted return and drawdown efficiency, while discouraging large drawdowns. Turnover penalty will be added after parameter-grid backtests are generated."
+    "reason": "The objective rewards risk-adjusted return and drawdown efficiency, while discouraging large drawdowns. Version 3.5 tests whether JP Morgan-style AI factor enhancements improve this score without changing the research theme."
   },
   "models": [
     {
       "name": "V1 Momentum-Vol Research Model",
       "group": "Core",
-      "note": "252-day stock momentum; top 3; inverse vol; 10.0% vol target",
+      "note": "Version 3.5 - JP Morgan AI factor enhancement: 252-day stock momentum plus JP Morgan-style quality, low-vol and crowding controls; top 3; 10.0% vol target",
       "fullSample": {
-        "cagr": 0.12585521907429276,
-        "volatility": 0.11394483487388549,
-        "sharpe": 1.0999284305067447,
-        "maxDrawdown": -0.1388468905424649,
-        "winRate": 0.6086956521739131,
-        "endingValue": 494.6692766080021,
-        "annualTurnover": 3.1138055551742583,
-        "totalCost": 4.891118814338805
+        "cagr": 0.1367999364608461,
+        "volatility": 0.1125954383113689,
+        "sharpe": 1.1980223346809682,
+        "maxDrawdown": -0.13604116143220046,
+        "winRate": 0.6459627329192547,
+        "endingValue": 564.4718886635011,
+        "annualTurnover": 7.913962075975761,
+        "totalCost": 14.562755700601127
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "lookbackDays": 252,
           "skipDays": 21,
           "topN": 3,
           "targetVol": 0.1,
-          "maxGross": 2
+          "maxGross": 2,
+          "jpMorganOverlay": "quality + low-vol + crowding"
         },
         "candidateGrid": {
           "lookbackDays": [
@@ -77,75 +81,77 @@
             2
           ]
         },
-        "trainingMeaning": "V1 training means selecting stable momentum, selection and volatility-scaling parameters."
+        "trainingMeaning": "V1 3.5 training means selecting stable momentum parameters while testing whether JP Morgan-style quality, low-vol and crowding overlays improve robustness."
       },
       "splitResults": {
         "train": {
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.12404078754058268,
-          "volatility": 0.10197184797750981,
-          "sharpe": 1.2021692671791875,
-          "maxDrawdown": -0.11701400792759142,
-          "calmar": 1.0600507557807903,
-          "score": 0.8472899961721123,
-          "endingValue": 199.67001970817756
+          "cagr": 0.1649575984469165,
+          "volatility": 0.10591112689802229,
+          "sharpe": 1.5020157836522543,
+          "maxDrawdown": -0.10208235398085352,
+          "calmar": 1.615926671105721,
+          "score": 1.1504768685771456,
+          "endingValue": 246.6845631474221
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.07616417630907013,
-          "volatility": 0.09168339142454973,
-          "sharpe": 0.8469970916211905,
-          "maxDrawdown": -0.053119003000952736,
-          "calmar": 1.4338404715108086,
-          "score": 0.8059889323826831,
-          "endingValue": 123.86590333059777
+          "cagr": 0.07133699279388805,
+          "volatility": 0.09286410360722974,
+          "sharpe": 0.7886272524863704,
+          "maxDrawdown": -0.05650846435823087,
+          "calmar": 1.2624125182672266,
+          "score": 0.7279551726632116,
+          "endingValue": 122.25281207711912
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.16574716774284415,
-          "volatility": 0.11559188234785768,
-          "sharpe": 1.3830350104020568,
-          "maxDrawdown": -0.07078386351952537,
-          "calmar": 2.3415953792508604,
-          "score": 1.3177659821042311,
-          "endingValue": 196.18973591217875
+          "cagr": 0.149638794989424,
+          "volatility": 0.11725361970895237,
+          "sharpe": 1.2493261047045867,
+          "maxDrawdown": -0.0638376390742127,
+          "calmar": 2.3440527744997826,
+          "score": 1.2590288155595775,
+          "endingValue": 184.9060201234296
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 63.7316445215164,
-        "decision": "Tune",
-        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.23836136947186937
+        "score": 46.74542028785625,
+        "decision": "Watch",
+        "reason": "Research candidate only; evidence is not strong enough for approval.",
+        "stabilityPenalty": 0.3065392957029403
       }
     },
     {
       "name": "V2 HMM-GARCH-MVO",
       "group": "V2",
-      "note": "Two-state Gaussian HMM, GARCH(1,1) likelihood grid and capped long-only MVO",
+      "note": "Version 3.5 HMM-GARCH-MVO: two-state regime model, GARCH risk forecast, capped MVO, and JP Morgan AI factor expected-return adjustment.",
       "fullSample": {
-        "cagr": 0.2773008267797581,
-        "volatility": 0.19946584191898156,
-        "sharpe": 1.3302609024738576,
-        "maxDrawdown": -0.3245653083128771,
-        "winRate": 0.6521739130434783,
-        "endingValue": 2715.714393816558,
-        "annualTurnover": 9.936277644137618,
-        "totalCost": 53.217720025232154
+        "cagr": 0.21678536719978547,
+        "volatility": 0.18658372151985542,
+        "sharpe": 1.1480532828420642,
+        "maxDrawdown": -0.3225899933228652,
+        "winRate": 0.6211180124223602,
+        "endingValue": 1415.6708780080726,
+        "annualTurnover": 28.324970760180605,
+        "totalCost": 88.00009417724996
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "historyDays": 504,
           "covarianceDays": 252,
           "lowRiskAversion": 1.5,
           "highRiskAversion": 6,
-          "maxWeight": 0.6
+          "maxWeight": 0.6,
+          "expectedReturnOverlay": "JPM_AI_Score"
         },
         "candidateGrid": {
           "historyDays": [
@@ -179,76 +185,78 @@
             0.1
           ]
         },
-        "trainingMeaning": "V2 training means estimating HMM/GARCH on the training window and selecting MVO hyperparameters on validation."
+        "trainingMeaning": "V2 3.5 training means estimating HMM/GARCH and testing whether the JP Morgan AI factor overlay improves MVO expected-return inputs."
       },
       "splitResults": {
         "train": {
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.26607427576540643,
-          "volatility": 0.16067206400345738,
-          "sharpe": 1.5579797757790854,
-          "maxDrawdown": -0.1680803969668937,
-          "calmar": 1.5830178924304559,
-          "score": 1.1591882271330356,
-          "endingValue": 403.56992423158005
+          "cagr": 0.1845657693641649,
+          "volatility": 0.14889976853994336,
+          "sharpe": 1.2156668340170542,
+          "maxDrawdown": -0.14786827610754671,
+          "calmar": 1.2481769195031907,
+          "score": 0.9067163235478769,
+          "endingValue": 272.27712663851906
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.3924374126396599,
-          "volatility": 0.22964912894421735,
-          "sharpe": 1.571318032643312,
-          "maxDrawdown": -0.20581561619997402,
-          "calmar": 1.9067426460894052,
-          "score": 1.2585343468963146,
-          "endingValue": 262.5564746318319
+          "cagr": 0.27317975450481846,
+          "volatility": 0.1797396541059733,
+          "sharpe": 1.442017521405142,
+          "maxDrawdown": -0.15298226905823142,
+          "calmar": 1.7856955331263578,
+          "score": 1.1693183176643982,
+          "endingValue": 202.22675844065884
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.24169902516130626,
-          "volatility": 0.22261202309570466,
-          "sharpe": 1.0833753383197462,
-          "maxDrawdown": -0.23581459876066668,
-          "calmar": 1.0249536136929835,
-          "score": 0.7714235264757142,
-          "endingValue": 258.8995830533588
+          "cagr": 0.22613908102182312,
+          "volatility": 0.20727017360373373,
+          "sharpe": 1.0919603129308815,
+          "maxDrawdown": -0.2700050671809664,
+          "calmar": 0.8375364336042522,
+          "score": 0.7156425641820757,
+          "endingValue": 245.62796999318343
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 59.99629519814747,
-        "decision": "Tune",
-        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.19793378410813672
+        "score": 16.5844823178096,
+        "decision": "Reject",
+        "reason": "Weak out-of-sample or risk-adjusted evidence under the current settings.",
+        "stabilityPenalty": 0.14202866322837449
       }
     },
     {
       "name": "V3 Boosted Trees + Attribution",
       "group": "V3",
-      "note": "Walk-forward regularized gradient-boosted decision stumps with additive feature attribution",
+      "note": "Version 3.5 walk-forward boosted stumps with JP Morgan AI factor features, regime/liquidity/crowding inputs and additive feature attribution.",
       "fullSample": {
-        "cagr": 0.12539555052557505,
-        "volatility": 0.10876460620063243,
-        "sharpe": 1.1433261273764899,
-        "maxDrawdown": -0.15501552981119027,
-        "winRate": 0.6770186335403726,
-        "endingValue": 490.6082881869892,
-        "annualTurnover": 5.635434998637408,
-        "totalCost": 8.070968933836308
+        "cagr": 0.12774728217850928,
+        "volatility": 0.11064180795621557,
+        "sharpe": 1.1448293878160432,
+        "maxDrawdown": -0.14466799878611747,
+        "winRate": 0.6459627329192547,
+        "endingValue": 505.4278675494516,
+        "annualTurnover": 18.94512867858709,
+        "totalCost": 35.12826275541287
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "rounds": 40,
           "learningRate": 0.05,
           "lambda": 2,
           "topN": 5,
           "targetVol": 0.1,
-          "maxGross": 2
+          "maxGross": 2,
+          "featureSet": "price + JPM_AI + regime + liquidity + crowding"
         },
         "candidateGrid": {
           "rounds": [
@@ -279,77 +287,80 @@
           "featureSet": [
             "price_only",
             "price_plus_risk",
-            "price_risk_drawdown"
+            "price_risk_drawdown",
+            "price_plus_jpm_ai_factor"
           ]
         },
-        "trainingMeaning": "V3 training means fitting the boosted model on training data and choosing ML hyperparameters by validation performance."
+        "trainingMeaning": "V3 3.5 training means fitting boosted stumps with JP Morgan-style AI factor features and validating feature/parameter robustness."
       },
       "splitResults": {
         "train": {
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1234471574544469,
-          "volatility": 0.09698133808605196,
-          "sharpe": 1.252662023763464,
-          "maxDrawdown": -0.10085437600414271,
-          "calmar": 1.2240138935505998,
-          "score": 0.9208166411583245,
-          "endingValue": 199.04722239152056
+          "cagr": 0.1605713632080663,
+          "volatility": 0.10275337863431551,
+          "sharpe": 1.5073252030237057,
+          "maxDrawdown": -0.11042548105381678,
+          "calmar": 1.454115134257921,
+          "score": 1.103488333532662,
+          "endingValue": 241.24240669742377
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.15538336392993313,
-          "volatility": 0.07093501530675764,
-          "sharpe": 2.0821787613233234,
-          "maxDrawdown": -0.03940478792334556,
-          "calmar": 3.943261012651599,
-          "score": 2.1160182675986405,
-          "endingValue": 152.36930511269776
+          "cagr": 0.16562403634056588,
+          "volatility": 0.0861376334088782,
+          "sharpe": 1.8316061672851398,
+          "maxDrawdown": -0.056223416308774476,
+          "calmar": 2.945819503940707,
+          "score": 1.7023462848296476,
+          "endingValue": 156.3406798344458
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.11860592516383917,
-          "volatility": 0.10127496538508994,
-          "sharpe": 1.155043565901253,
-          "maxDrawdown": -0.10494232569351125,
-          "calmar": 1.1302010354738379,
-          "score": 0.8483356827283641,
-          "endingValue": 163.64375616152614
+          "cagr": 0.07378573157355928,
+          "volatility": 0.09807354877186557,
+          "sharpe": 0.7747318771111662,
+          "maxDrawdown": -0.10323417554986358,
+          "calmar": 0.7147413265088722,
+          "score": 0.5527283250977001,
+          "endingValue": 136.86205143875912
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 100,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.34039537895171745
+        "score": 52.085161813502715,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.3948474769771177
       }
     },
     {
       "name": "S1 AI Capex Momentum+",
       "group": "Custom AI",
-      "note": "Upgraded AI infrastructure strategy: 12-1 stock momentum plus QQQ/XLK AI-risk confirmation, volatility targeting and hedge sleeve.",
+      "note": "Version 3.5 JP Morgan AI infrastructure strategy: capex momentum plus AI factor confirmation, liquidity/risk penalty, volatility targeting and hedge sleeve.",
       "fullSample": {
-        "cagr": 0.1753076407522327,
-        "volatility": 0.13612551665071423,
-        "sharpe": 1.2579154123946708,
-        "maxDrawdown": -0.18764778566737328,
-        "winRate": 0.6335403726708074,
-        "endingValue": 884.2601339253937,
-        "annualTurnover": 3.3382956294262196,
-        "totalCost": 7.732262339511569
+        "cagr": 0.18214872918212643,
+        "volatility": 0.1291873199241749,
+        "sharpe": 1.3634668769232383,
+        "maxDrawdown": -0.18194587951398145,
+        "winRate": 0.6521739130434783,
+        "endingValue": 957.5316487071786,
+        "annualTurnover": 6.691899215013612,
+        "totalCost": 15.930933356223983
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "aiFactorConfirm": "QQQ/XLK 126D",
           "stockMomentum": "12-1M + 3M",
           "targetVol": 0.12,
-          "hedgeSleeve": "IEF/GLD/TLT"
+          "hedgeSleeve": "IEF/GLD/TLT",
+          "jpMorganOverlay": "AI infra + liquidity + crowding penalty"
         },
         "candidateGrid": {
           "targetVol": [
@@ -380,66 +391,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1826570913517258,
-          "volatility": 0.12555965484677023,
-          "sharpe": 1.406758069971195,
-          "maxDrawdown": -0.15100803591286782,
-          "calmar": 1.2095852399346456,
-          "score": 0.9808158998761447,
-          "endingValue": 269.6929087442459
+          "cagr": 0.18275887951150094,
+          "volatility": 0.12206622191146643,
+          "sharpe": 1.4437728750510772,
+          "maxDrawdown": -0.13584803937443723,
+          "calmar": 1.3453184922880161,
+          "score": 1.039708537521946,
+          "endingValue": 269.8302064599622
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.17079187358190318,
-          "volatility": 0.12016576912712901,
-          "sharpe": 1.3787918758382611,
-          "maxDrawdown": -0.07519381777586398,
-          "calmar": 2.271355260760874,
-          "score": 1.2943435405778934,
-          "endingValue": 158.37034641808992
+          "cagr": 0.20644768968469251,
+          "volatility": 0.11158736688314355,
+          "sharpe": 1.7482898950341614,
+          "maxDrawdown": -0.07089551022972085,
+          "calmar": 2.9119994907399005,
+          "score": 1.6532407489643708,
+          "endingValue": 172.84760915201454
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.16959345634561251,
-          "volatility": 0.13375381954187462,
-          "sharpe": 1.2365431879671285,
-          "maxDrawdown": -0.11612003134172344,
-          "calmar": 1.4605012966843334,
-          "score": 0.9829828204563356,
-          "endingValue": 199.05015738539177
+          "cagr": 0.1716959532516782,
+          "volatility": 0.12849257095265582,
+          "sharpe": 1.3002622804767971,
+          "maxDrawdown": -0.12493425645615774,
+          "calmar": 1.3742904317994655,
+          "score": 0.9849117301087826,
+          "endingValue": 201.06295749692248
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 82.17998833922366,
+        "score": 89.27172892036118,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.06808236836332078
+        "stabilityPenalty": 0.15278371659326467
       }
     },
     {
       "name": "S2 Quality Growth Barbell+",
       "group": "Custom AI",
-      "note": "Upgraded quality-growth barbell: quality proxy, growth acceleration, low-vol hedge that expands during market stress.",
+      "note": "Version 3.5 quality-growth barbell: quality proxy, AI factor score, growth acceleration, low-vol hedge that expands during market stress.",
       "fullSample": {
-        "cagr": 0.30559379363961714,
-        "volatility": 0.19470677613153628,
-        "sharpe": 1.4708450363658165,
-        "maxDrawdown": -0.2763510844197141,
-        "winRate": 0.6956521739130435,
-        "endingValue": 3652.6123651188695,
-        "annualTurnover": 4.062568731666302,
-        "totalCost": 30.578291628562656
+        "cagr": 0.29732601722517127,
+        "volatility": 0.19414055568970748,
+        "sharpe": 1.4418737109739903,
+        "maxDrawdown": -0.2729832112192695,
+        "winRate": 0.7018633540372671,
+        "endingValue": 3365.077169043572,
+        "annualTurnover": 9.039981031229837,
+        "totalCost": 54.54580115557872
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "qualityWeight": 0.52,
           "growthWeight": 0.4,
-          "lowVolHedge": ".08 to .18"
+          "lowVolHedge": ".08 to .18",
+          "jpMorganOverlay": "quality + AI score + low-vol hedge"
         },
         "candidateGrid": {
           "qualityWeight": [
@@ -465,37 +478,37 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.314732439429366,
-          "volatility": 0.14817121477356626,
-          "sharpe": 1.9391415467675108,
-          "maxDrawdown": -0.18217968647065952,
-          "calmar": 1.727593484908398,
-          "score": 1.3726737728708334,
-          "endingValue": 504.40044806137803
+          "cagr": 0.2665075139258186,
+          "volatility": 0.13993324851493316,
+          "sharpe": 1.7728789322024026,
+          "maxDrawdown": -0.1421009419957141,
+          "calmar": 1.875480276083298,
+          "score": 1.3462295081164992,
+          "endingValue": 404.3872872186963
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.36588963600837365,
-          "volatility": 0.16896420500654424,
-          "sharpe": 1.9494482031717493,
-          "maxDrawdown": -0.10155983038933802,
-          "calmar": 3.6027003452615607,
-          "score": 1.9479058119668216,
-          "endingValue": 248.2254669779634
+          "cagr": 0.37690055537122324,
+          "volatility": 0.16558856845860598,
+          "sharpe": 2.035405084352018,
+          "maxDrawdown": -0.09491965938522584,
+          "calmar": 3.9707322783533656,
+          "score": 2.097660005525895,
+          "endingValue": 254.105267963798
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.2662362357275183,
-          "volatility": 0.18212869559982336,
-          "sharpe": 1.3897382734969213,
-          "maxDrawdown": -0.14269990567108093,
-          "calmar": 1.8657071598994954,
-          "score": 1.170824380476355,
-          "endingValue": 282.14700069440164
+          "cagr": 0.2904709008417454,
+          "volatility": 0.19200163876111584,
+          "sharpe": 1.4312351810040485,
+          "maxDrawdown": -0.1531136478823215,
+          "calmar": 1.8970934652735367,
+          "score": 1.1978725062456506,
+          "endingValue": 307.7311539200976
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
@@ -503,29 +516,31 @@
         "score": 100,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.18199790059307244
+        "stabilityPenalty": 0.17345891731239707
       }
     },
     {
       "name": "S3 Crowding-Aware Momentum+",
       "group": "Custom Risk",
-      "note": "Upgraded anti-crowding momentum: penalizes one-month chase, volatility spikes and crowded momentum ETF conditions.",
+      "note": "Version 3.5 anti-crowding momentum: JP Morgan-style crowding, liquidity and one-month chase penalties.",
       "fullSample": {
-        "cagr": 0.11042184743189254,
-        "volatility": 0.11660815216240668,
-        "sharpe": 0.958844775578788,
-        "maxDrawdown": -0.16480801383402077,
-        "winRate": 0.6024844720496895,
-        "endingValue": 409.8350210112972,
-        "annualTurnover": 4.9512896692308805,
-        "totalCost": 6.919211271696975
+        "cagr": 0.13108485397595326,
+        "volatility": 0.11270714955200312,
+        "sharpe": 1.1521830192684015,
+        "maxDrawdown": -0.13533305032154574,
+        "winRate": 0.6459627329192547,
+        "endingValue": 526.2330231017256,
+        "annualTurnover": 10.877400570822726,
+        "totalCost": 17.468686968648736
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "momentum": "12-1M",
           "chasePenalty": "1M",
           "crowdingProxy": "MTUM",
-          "targetVol": 0.1
+          "targetVol": 0.1,
+          "jpMorganOverlay": "liquidity + crowding-aware AI score"
         },
         "candidateGrid": {
           "chasePenalty": [
@@ -551,66 +566,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.10056435492687421,
-          "volatility": 0.10227271879483926,
-          "sharpe": 0.991066073108739,
-          "maxDrawdown": -0.13287898765057893,
-          "calmar": 0.7568115674640759,
-          "score": 0.6597353043730975,
-          "endingValue": 176.23965953469826
+          "cagr": 0.1136673236090413,
+          "volatility": 0.10364566711117151,
+          "sharpe": 1.0938907307301418,
+          "maxDrawdown": -0.10579130103450529,
+          "calmar": 1.0744486786486078,
+          "score": 0.8040063023196955,
+          "endingValue": 189.01686804549513
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.09430685346189449,
-          "volatility": 0.08244494541071119,
-          "sharpe": 1.1367867340595215,
-          "maxDrawdown": -0.04798451623105693,
-          "calmar": 1.9653600967400489,
-          "score": 1.0963636077256935,
-          "endingValue": 130.0535698235652
+          "cagr": 0.10935164957525156,
+          "volatility": 0.08733916409407858,
+          "sharpe": 1.2349976453665963,
+          "maxDrawdown": -0.04133996343476343,
+          "calmar": 2.645180123291934,
+          "score": 1.3451689810590721,
+          "endingValue": 135.33601073702357
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.139688734723171,
-          "volatility": 0.10507151193046699,
-          "sharpe": 1.2952662385094833,
-          "maxDrawdown": -0.09290220560611029,
-          "calmar": 1.5036105312227754,
-          "score": 1.0246627461354891,
-          "endingValue": 177.63683735490662
+          "cagr": 0.18019006417294747,
+          "volatility": 0.11108512785191224,
+          "sharpe": 1.5515407000186463,
+          "maxDrawdown": -0.060573414046054985,
+          "calmar": 2.9747384559824535,
+          "score": 1.5845575103985214,
+          "endingValue": 207.56775094858915
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 70.83124567287497,
+        "score": 71.336867531231,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.13333863242795232
+        "stabilityPenalty": 0.18118793664002752
       }
     },
     {
       "name": "S4 Low-Vol Alpha Shield+",
       "group": "Custom Risk",
-      "note": "Upgraded low-vol shield: medium trend, 200-day trend confirmation, drawdown penalty and lower target volatility.",
+      "note": "Version 3.5 low-vol alpha shield: medium trend plus quality, drawdown, low-vol and crowding-aware JP Morgan controls.",
       "fullSample": {
-        "cagr": 0.13405775313874324,
-        "volatility": 0.10574279146370902,
-        "sharpe": 1.2456969843584649,
-        "maxDrawdown": -0.15302127991876568,
-        "winRate": 0.6956521739130435,
-        "endingValue": 547.5035080118057,
-        "annualTurnover": 6.54607022107716,
-        "totalCost": 11.527338497869835
+        "cagr": 0.1135208519330202,
+        "volatility": 0.09960242666698692,
+        "sharpe": 1.1322509065992434,
+        "maxDrawdown": -0.12560817092889576,
+        "winRate": 0.6521739130434783,
+        "endingValue": 427.8086314028903,
+        "annualTurnover": 11.593257231455201,
+        "totalCost": 18.08818482528794
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "trend": "126D + 200D confirm",
           "volPenalty": 0.65,
-          "targetVol": 0.085
+          "targetVol": 0.085,
+          "jpMorganOverlay": "quality + low-vol + crowding controls"
         },
         "candidateGrid": {
           "volPenalty": [
@@ -636,65 +653,67 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1533335853602633,
-          "volatility": 0.10319583004896103,
-          "sharpe": 1.4404467195909685,
-          "maxDrawdown": -0.12165641760216661,
-          "calmar": 1.2603822172512547,
-          "score": 1.0141500472310956,
-          "endingValue": 232.48048203042296
+          "cagr": 0.12762478997438076,
+          "volatility": 0.09798728069637948,
+          "sharpe": 1.2791911743999467,
+          "maxDrawdown": -0.09977494174016277,
+          "calmar": 1.279126679990909,
+          "score": 0.9493965383032323,
+          "endingValue": 203.46461607671822
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.12309292326980104,
-          "volatility": 0.09240576101272506,
-          "sharpe": 1.3064700356443653,
-          "maxDrawdown": -0.04724794141907318,
-          "calmar": 2.605254738571754,
-          "score": 1.3647631434695833,
-          "endingValue": 140.282219980081
+          "cagr": 0.12195664747750579,
+          "volatility": 0.09042731135341803,
+          "sharpe": 1.3217106746532532,
+          "maxDrawdown": -0.04988313369422248,
+          "calmar": 2.444847355121776,
+          "score": 1.3232356967610746,
+          "endingValue": 139.86878320285453
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.12832779605926214,
-          "volatility": 0.08756473603751903,
-          "sharpe": 1.421040768180455,
-          "maxDrawdown": -0.07239680110275104,
-          "calmar": 1.7725616892537777,
-          "score": 1.1639971723470628,
-          "endingValue": 169.98624751019972
+          "cagr": 0.10406130425945204,
+          "volatility": 0.09629345307870182,
+          "sharpe": 1.0766679682614915,
+          "maxDrawdown": -0.07108705529487191,
+          "calmar": 1.4638572919894013,
+          "score": 0.9165490677850043,
+          "endingValue": 154.7075065038408
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 81.31291619265085,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.05211370750950118
+        "score": 62.551738400398115,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.10681395246713812
       }
     },
     {
       "name": "S5 Regime-Switch Equity Hedge+",
       "group": "Custom Macro",
-      "note": "Upgraded regime hedge: blends SPY trend, HYG/IEF credit momentum, TLT rates signal and volatility stress into a risk-on score.",
+      "note": "Version 3.5 regime hedge: JP Morgan macro regime, liquidity, credit and volatility stress decide equity/hedge budget.",
       "fullSample": {
-        "cagr": 0.22048398300982575,
-        "volatility": 0.16580397763931298,
-        "sharpe": 1.2878724317227006,
-        "maxDrawdown": -0.26480820163833096,
-        "winRate": 0.6832298136645962,
-        "endingValue": 1476.0766961190634,
-        "annualTurnover": 8.703948142403947,
-        "totalCost": 30.72163804423294
+        "cagr": 0.1619765838136875,
+        "volatility": 0.11953286129790508,
+        "sharpe": 1.3190776187737268,
+        "maxDrawdown": -0.18281310896305458,
+        "winRate": 0.6894409937888198,
+        "endingValue": 759.5622729417082,
+        "annualTurnover": 13.642263548983117,
+        "totalCost": 28.73940320275247
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "regimeScore": "SPY trend + HYG/IEF + TLT + vol",
-          "hedgeSleeve": ".18 or .62"
+          "hedgeSleeve": ".18 or .62",
+          "jpMorganOverlay": "macro regime + liquidity score"
         },
         "candidateGrid": {
           "regimeThreshold": [
@@ -720,66 +739,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.23560512743139173,
-          "volatility": 0.129382814432766,
-          "sharpe": 1.711101980586738,
-          "maxDrawdown": -0.08818427876061741,
-          "calmar": 2.671736172736173,
-          "score": 1.5626983152088223,
-          "endingValue": 349.4252577916641
+          "cagr": 0.17764152356397545,
+          "volatility": 0.11827906373746776,
+          "sharpe": 1.4490534010092582,
+          "maxDrawdown": -0.11024601212419016,
+          "calmar": 1.6113192680735284,
+          "score": 1.1244452096638056,
+          "endingValue": 262.99914026038823
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.28070438478345405,
-          "volatility": 0.1498847819868723,
-          "sharpe": 1.7383468294122217,
-          "maxDrawdown": -0.10808722578835173,
-          "calmar": 2.59701720287565,
-          "score": 1.5505525115193597,
-          "endingValue": 205.7314484023283
+          "cagr": 0.16218542398933478,
+          "volatility": 0.09910046858563704,
+          "sharpe": 1.573462390698478,
+          "maxDrawdown": -0.05458087850826443,
+          "calmar": 2.9714696505806018,
+          "score": 1.5940408831376691,
+          "endingValue": 154.99968153074056
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.18527096659314268,
-          "volatility": 0.1743847665856054,
-          "sharpe": 1.05995958144619,
-          "maxDrawdown": -0.16103685939445678,
-          "calmar": 1.1504879521981046,
-          "score": 0.8060245113707712,
-          "endingValue": 211.04410740712925
+          "cagr": 0.15577667792896555,
+          "volatility": 0.11439024161086736,
+          "sharpe": 1.3260741091425352,
+          "maxDrawdown": -0.11628849498552118,
+          "calmar": 1.339570848761616,
+          "score": 0.9869757542440736,
+          "endingValue": 189.29732718632235
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 73.4362631401788,
+        "score": 72.25154447931203,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.25549504046444055
+        "stabilityPenalty": 0.08533444091168295
       }
     },
     {
       "name": "S6 Credit-Liquidity Accelerator+",
       "group": "Custom Macro",
-      "note": "Upgraded credit-liquidity accelerator: uses high-yield/Treasury relative momentum as a credit cycle proxy before increasing equity beta.",
+      "note": "Version 3.5 credit-liquidity accelerator: high-yield/Treasury proxy plus JP Morgan liquidity and regime score before increasing beta.",
       "fullSample": {
-        "cagr": 0.16307991935433663,
-        "volatility": 0.13006119042406172,
-        "sharpe": 1.2295974578665914,
-        "maxDrawdown": -0.18472397825874753,
-        "winRate": 0.6149068322981367,
-        "endingValue": 771.3307085146239,
-        "annualTurnover": 6.2185370121896515,
-        "totalCost": 17.211341722829427
+        "cagr": 0.15703789391832856,
+        "volatility": 0.12211132134968924,
+        "sharpe": 1.2587865803355591,
+        "maxDrawdown": -0.21216348407005858,
+        "winRate": 0.6583850931677019,
+        "endingValue": 717.0016518812647,
+        "annualTurnover": 13.417237844503754,
+        "totalCost": 31.076193353040377
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "creditProxy": "HYG minus IEF",
           "targetVol": 0.125,
-          "riskOffHedge": 0.52
+          "riskOffHedge": 0.52,
+          "jpMorganOverlay": "credit-liquidity + regime score"
         },
         "candidateGrid": {
           "targetVol": [
@@ -805,65 +826,67 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.18498976780531584,
-          "volatility": 0.1370210659675559,
-          "sharpe": 1.3132596276227226,
-          "maxDrawdown": -0.14357747729509918,
-          "calmar": 1.2884316627537669,
-          "score": 0.9631385835268452,
-          "endingValue": 272.8539750456028
+          "cagr": 0.15740195497498566,
+          "volatility": 0.11521901041572441,
+          "sharpe": 1.3321200852978234,
+          "maxDrawdown": -0.1196104445150652,
+          "calmar": 1.3159549369884713,
+          "score": 0.9822794750290554,
+          "endingValue": 237.37241330555992
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.2568838429915976,
-          "volatility": 0.10564480110939714,
-          "sharpe": 2.2348577132757725,
-          "maxDrawdown": -0.0633578172539766,
-          "calmar": 4.054493259479745,
-          "score": 2.2156981670926235,
-          "endingValue": 194.77171145652562
+          "cagr": 0.23566606688114722,
+          "volatility": 0.0999289277677043,
+          "sharpe": 2.1839643116068537,
+          "maxDrawdown": -0.06667468761168605,
+          "calmar": 3.5345657448546053,
+          "score": 2.036486194918297,
+          "endingValue": 185.33878267323726
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.0768270375447968,
-          "volatility": 0.12230765542159518,
-          "sharpe": 0.663126132075152,
-          "maxDrawdown": -0.1436743474873864,
-          "calmar": 0.5347303738514747,
-          "score": 0.4444584368405222,
-          "endingValue": 138.43865266720852
+          "cagr": 0.1165564381817934,
+          "volatility": 0.13482879510025247,
+          "sharpe": 0.8842836473034383,
+          "maxDrawdown": -0.14773376433609697,
+          "calmar": 0.7889627581452904,
+          "score": 0.6198430922965247,
+          "endingValue": 162.57552077855163
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 94.34742298067611,
+        "score": 77.2861380578871,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.5626105500159471
+        "stabilityPenalty": 0.4501143461132432
       }
     },
     {
       "name": "S7 Revision-Proxy Growth Rank+",
       "group": "Custom AI",
-      "note": "Upgraded revision proxy: adds short-term acceleration and trend confirmation to the price-based earnings-revision proxy.",
+      "note": "Version 3.5 revision proxy: acceleration, AI factor score, quality and volatility stability proxy analyst-revision behavior.",
       "fullSample": {
-        "cagr": 0.1666787634566964,
-        "volatility": 0.13414372197646998,
-        "sharpe": 1.219452832694444,
-        "maxDrawdown": -0.19147381820008702,
-        "winRate": 0.6770186335403726,
-        "endingValue": 800.7089140959473,
-        "annualTurnover": 7.280702330012627,
-        "totalCost": 16.061178357885108
+        "cagr": 0.17938482680360002,
+        "volatility": 0.12965162215651133,
+        "sharpe": 1.34098754651907,
+        "maxDrawdown": -0.14845629539352123,
+        "winRate": 0.6894409937888198,
+        "endingValue": 927.7236024615347,
+        "annualTurnover": 13.009896638757771,
+        "totalCost": 30.220179586152966
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "features": "1M/3M/6M momentum + vol stability + 200D trend",
-          "targetVol": 0.115
+          "targetVol": 0.115,
+          "jpMorganOverlay": "AI score + quality + acceleration proxy"
         },
         "candidateGrid": {
           "accelerationWeight": [
@@ -889,66 +912,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1828419393664784,
-          "volatility": 0.11555037780513684,
-          "sharpe": 1.5186556745834492,
-          "maxDrawdown": -0.12879748370464095,
-          "calmar": 1.4196080086919438,
-          "score": 1.0963977077996712,
-          "endingValue": 269.9422853897103
+          "cagr": 0.1837649746949468,
+          "volatility": 0.1232953350604424,
+          "sharpe": 1.4371505277778782,
+          "maxDrawdown": -0.11100939723375669,
+          "calmar": 1.6554001667803486,
+          "score": 1.132236847810774,
+          "endingValue": 271.1904123084284
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.19121389441908732,
-          "volatility": 0.12200545959382417,
-          "sharpe": 1.5027704535279052,
-          "maxDrawdown": -0.07242268316433953,
-          "calmar": 2.64024869094107,
-          "score": 1.4610790430534444,
-          "endingValue": 166.56040066541394
+          "cagr": 0.17175505916900846,
+          "volatility": 0.10966518015358465,
+          "sharpe": 1.5075477907079884,
+          "maxDrawdown": -0.06707034334924289,
+          "calmar": 2.560819739279705,
+          "score": 1.439935393267582,
+          "endingValue": 158.7505408236005
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.14181008315976085,
-          "volatility": 0.1180387460607059,
-          "sharpe": 1.1808767009618644,
-          "maxDrawdown": -0.11173687348469286,
-          "calmar": 1.2691431103912874,
-          "score": 0.9009637612017559,
-          "endingValue": 179.09436020682952
+          "cagr": 0.19351465843821414,
+          "volatility": 0.12572623950124512,
+          "sharpe": 1.4749644146371166,
+          "maxDrawdown": -0.09453258812487575,
+          "calmar": 2.0470682362211954,
+          "score": 1.2684011986405734,
+          "endingValue": 218.09822270015266
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 77.73777283135814,
+        "score": 72.60779994730808,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.13606588074687942
+        "stabilityPenalty": 0.023914269651729936
       }
     },
     {
       "name": "S8 Trend-Guarded Reversion+",
       "group": "Custom Tactical",
-      "note": "Upgraded guarded reversion: buys pullbacks only above 200-day trend, with drawdown and volatility filters.",
+      "note": "Version 3.5 guarded reversion: pullback entries require trend, drawdown, volatility and JP Morgan crowding controls.",
       "fullSample": {
-        "cagr": 0.11867323219871606,
-        "volatility": 0.10502574220203507,
-        "sharpe": 1.1230435433371735,
-        "maxDrawdown": -0.16979871186495132,
-        "winRate": 0.6273291925465838,
-        "endingValue": 453.79295253933554,
-        "annualTurnover": 12.98267925975097,
-        "totalCost": 21.368734673403832
+        "cagr": 0.12193904703655889,
+        "volatility": 0.10232243467495937,
+        "sharpe": 1.1786023707845978,
+        "maxDrawdown": -0.12179030095652688,
+        "winRate": 0.6583850931677019,
+        "endingValue": 472.70639521453126,
+        "annualTurnover": 37.48274059745783,
+        "totalCost": 57.73068367930424
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "reversion": "20D z-score",
           "guard": "200D trend + drawdown filter",
-          "targetVol": 0.09
+          "targetVol": 0.09,
+          "jpMorganOverlay": "crowding and low-vol controls"
         },
         "candidateGrid": {
           "zWindow": [
@@ -974,66 +999,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1341425440436781,
-          "volatility": 0.08985922776769474,
-          "sharpe": 1.4512906913891428,
-          "maxDrawdown": -0.08030797923372202,
-          "calmar": 1.6703513813151767,
-          "score": 1.146155427596295,
-          "endingValue": 210.51894699963077
+          "cagr": 0.1161854977244885,
+          "volatility": 0.1040598874580756,
+          "sharpe": 1.1101613119699443,
+          "maxDrawdown": -0.09200920925192568,
+          "calmar": 1.262759441898549,
+          "score": 0.8691995020308471,
+          "endingValue": 191.55846951161456
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.10318502021358711,
-          "volatility": 0.09766322974122234,
-          "sharpe": 1.0560601626562645,
-          "maxDrawdown": -0.08203429463731693,
-          "calmar": 1.2578278471190614,
-          "score": 0.8443719978673058,
-          "endingValue": 133.15410184036057
+          "cagr": 0.1063744325553615,
+          "volatility": 0.09203655220824879,
+          "sharpe": 1.1471478654512495,
+          "maxDrawdown": -0.05741559358693038,
+          "calmar": 1.8527097938002632,
+          "score": 1.066287918234448,
+          "endingValue": 134.27968704655106
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.11631841977587176,
-          "volatility": 0.09789418317465984,
-          "sharpe": 1.1708360123606287,
-          "maxDrawdown": -0.09006149644893802,
-          "calmar": 1.291544382030345,
-          "score": 0.9053333705264927,
-          "endingValue": 162.178337006184
+          "cagr": 0.13678213714777776,
+          "volatility": 0.09016506948712134,
+          "sharpe": 1.4701195092562813,
+          "maxDrawdown": -0.07751590933080477,
+          "calmar": 1.7645685682928658,
+          "score": 1.1831727587201057,
+          "endingValue": 175.963229180413
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 41.42647355187151,
-        "decision": "Watch",
-        "reason": "Research candidate only; evidence is not strong enough for approval.",
-        "stabilityPenalty": 0.16583215951076988
+        "score": 2.1698350572250114,
+        "decision": "Reject",
+        "reason": "Weak out-of-sample or risk-adjusted evidence under the current settings.",
+        "stabilityPenalty": 0.15936751556236062
       }
     },
     {
       "name": "S9 Sector-Breadth Rotation+",
       "group": "Custom Macro",
-      "note": "Upgraded sector-breadth rotation: sector ETF breadth and leading-sector momentum decide risk budget, then stocks receive allocation.",
+      "note": "Version 3.5 sector-breadth rotation: ETF breadth/factor leadership plus JP Morgan regime, liquidity and quality scoring.",
       "fullSample": {
-        "cagr": 0.16620129126476657,
-        "volatility": 0.13092666843086626,
-        "sharpe": 1.242974278909394,
-        "maxDrawdown": -0.18546598469112974,
-        "winRate": 0.6583850931677019,
-        "endingValue": 798.065732190517,
-        "annualTurnover": 7.362739914903672,
-        "totalCost": 15.174108180035343
+        "cagr": 0.15449187623623484,
+        "volatility": 0.12282584805455096,
+        "sharpe": 1.2342728468902335,
+        "maxDrawdown": -0.12415864480813166,
+        "winRate": 0.6956521739130435,
+        "endingValue": 698.2392192946262,
+        "annualTurnover": 15.1314611414104,
+        "totalCost": 29.94487044726588
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "breadth": "sector ETFs above 100D MA",
           "riskBudget": ".08 to .12",
-          "leaderFactor": "sector momentum"
+          "leaderFactor": "sector momentum",
+          "jpMorganOverlay": "ETF breadth + liquidity + quality score"
         },
         "candidateGrid": {
           "breadthThreshold": [
@@ -1059,66 +1086,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.18598049754964086,
-          "volatility": 0.12251206331557263,
-          "sharpe": 1.4605014636900464,
-          "maxDrawdown": -0.1379986168054117,
-          "calmar": 1.3476982730333245,
-          "score": 1.047735278889977,
-          "endingValue": 274.20581898968965
+          "cagr": 0.17809738120460294,
+          "volatility": 0.11719161743969765,
+          "sharpe": 1.463997792618503,
+          "maxDrawdown": -0.07429931192502348,
+          "calmar": 2.3970259830174956,
+          "score": 1.3704768703910726,
+          "endingValue": 263.60176509860355
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.11057890954584892,
-          "volatility": 0.11232608694584609,
-          "sharpe": 0.9916374856475086,
-          "maxDrawdown": -0.07356706048301032,
-          "calmar": 1.5031035468840865,
-          "score": 0.8898112265583038,
-          "endingValue": 135.7730296480345
+          "cagr": 0.13376320453332258,
+          "volatility": 0.10320983377022643,
+          "sharpe": 1.2721710008346778,
+          "maxDrawdown": -0.05978849689329013,
+          "calmar": 2.2372732462577494,
+          "score": 1.237680074563601,
+          "endingValue": 144.20386362746206
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.18725449865772004,
-          "volatility": 0.11027611267760254,
-          "sharpe": 1.612701573537932,
-          "maxDrawdown": -0.06609002602018155,
-          "calmar": 2.833324632078964,
-          "score": 1.5691040951137403,
-          "endingValue": 212.60047780587917
+          "cagr": 0.15762311650975303,
+          "volatility": 0.11069138885442605,
+          "sharpe": 1.3811084079465825,
+          "maxDrawdown": -0.07184542425965978,
+          "calmar": 2.193920046182485,
+          "score": 1.2724902550047417,
+          "endingValue": 190.6339941771836
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 61.2184858193875,
+        "score": 57.7056575687328,
         "decision": "Tune",
         "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.23890782670718763
+        "stabilityPenalty": 0.07010047649624498
       }
     },
     {
       "name": "S10 Defensive Growth Stabilizer+",
       "group": "Custom Risk",
-      "note": "Upgraded defensive stabilizer: combines quality proxy with volatility stress hedge, designed for smoother downside behavior.",
+      "note": "Version 3.5 defensive stabilizer: quality, low-volatility, crowding control and volatility stress hedge.",
       "fullSample": {
-        "cagr": 0.14207585508141096,
-        "volatility": 0.12646835063258852,
-        "sharpe": 1.1164105418693664,
-        "maxDrawdown": -0.2192075492020954,
+        "cagr": 0.1138143849081612,
+        "volatility": 0.10368905448695166,
+        "sharpe": 1.094188672654973,
+        "maxDrawdown": -0.12830900075469132,
         "winRate": 0.6583850931677019,
-        "endingValue": 601.2489599179669,
-        "annualTurnover": 4.6391018944732005,
-        "totalCost": 9.871101835256244
+        "endingValue": 429.4325667670419,
+        "annualTurnover": 8.866768397312473,
+        "totalCost": 15.107556155498472
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "qualityProxy": true,
           "stress": "SPY vol/drawdown",
-          "hedgeSleeve": 0.34
+          "hedgeSleeve": 0.34,
+          "jpMorganOverlay": "quality + low-vol + crowding control"
         },
         "candidateGrid": {
           "hedgeSleeve": [
@@ -1144,65 +1173,67 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.16367803149058657,
-          "volatility": 0.1021306268085266,
-          "sharpe": 1.5424400142422439,
-          "maxDrawdown": -0.06936614412931907,
-          "calmar": 2.359624187636005,
-          "score": 1.3950486482868794,
-          "endingValue": 245.08652731151147
+          "cagr": 0.13635073642295237,
+          "volatility": 0.10123859673001837,
+          "sharpe": 1.3179901959925355,
+          "maxDrawdown": -0.08089166721733665,
+          "calmar": 1.6855968125444911,
+          "score": 1.0906854652382545,
+          "endingValue": 212.95452346356214
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.2026972098489359,
-          "volatility": 0.12167408513077607,
-          "sharpe": 1.5864552229075495,
-          "maxDrawdown": -0.08987442273789226,
-          "calmar": 2.255338100363409,
-          "score": 1.3815188381436307,
-          "endingValue": 171.28551523289158
+          "cagr": 0.14997652144846496,
+          "volatility": 0.0998950582913947,
+          "sharpe": 1.4547832591909309,
+          "maxDrawdown": -0.06681531673287155,
+          "calmar": 2.2446428271540326,
+          "score": 1.3213637831088416,
+          "endingValue": 150.29951608547657
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.08576537385620298,
-          "volatility": 0.10620301549322526,
-          "sharpe": 0.8252937878539676,
-          "maxDrawdown": -0.1027060318172276,
-          "calmar": 0.8350568349172357,
-          "score": 0.6116286518277333,
-          "endingValue": 143.55981209651446
+          "cagr": 0.07541207822751983,
+          "volatility": 0.10175903927480133,
+          "sharpe": 0.7647073248703825,
+          "maxDrawdown": -0.07285435641881377,
+          "calmar": 1.0351073282976055,
+          "score": 0.6473650590390724,
+          "endingValue": 137.7781346827678
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 71.43725022703141,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.32420131025292265
+        "score": 60.54386935774274,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.30986918566938865
       }
     },
     {
       "name": "S11 Tail-Risk Shock Absorber+",
       "group": "Custom Risk",
-      "note": "Upgraded tail-risk absorber: reacts to drawdown, volatility, credit stress and combined regime score before moving into hedges.",
+      "note": "Version 3.5 tail-risk absorber: JP Morgan regime, low-vol and quality score before shifting into hedges under shock.",
       "fullSample": {
-        "cagr": 0.182382293038577,
-        "volatility": 0.12889023489567666,
-        "sharpe": 1.3677710760104407,
-        "maxDrawdown": -0.19801557373281164,
+        "cagr": 0.15198093034988336,
+        "volatility": 0.12238203855678033,
+        "sharpe": 1.2205148695900825,
+        "maxDrawdown": -0.16944957525077742,
         "winRate": 0.7142857142857143,
-        "endingValue": 960.6466148218071,
-        "annualTurnover": 5.5143068578389025,
-        "totalCost": 17.03826570912619
+        "endingValue": 677.5622564841887,
+        "annualTurnover": 11.51196183653327,
+        "totalCost": 24.322208578338735
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "shockRules": "drawdown + vol + credit + regime",
-          "hedgeSleeve": 0.65
+          "hedgeSleeve": 0.65,
+          "jpMorganOverlay": "regime + low-vol + quality under shock"
         },
         "candidateGrid": {
           "hedgeSleeve": [
@@ -1228,66 +1259,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.23566509071656205,
-          "volatility": 0.11399116793508363,
-          "sharpe": 1.9271017824218721,
-          "maxDrawdown": -0.1058008225333974,
-          "calmar": 2.227441007296246,
-          "score": 1.5248480220253766,
-          "endingValue": 349.5255518762484
+          "cagr": 0.1689427306657023,
+          "volatility": 0.11362423978273903,
+          "sharpe": 1.4377942146923055,
+          "maxDrawdown": -0.11548218109906383,
+          "calmar": 1.4629333206027564,
+          "score": 1.074339174682458,
+          "endingValue": 251.71712501447433
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.23231166144487414,
-          "volatility": 0.1353876203645905,
-          "sharpe": 1.621520365290831,
-          "maxDrawdown": -0.08943047661120151,
-          "calmar": 2.5976788925641956,
-          "score": 1.5000447844890126,
-          "endingValue": 183.8755605525384
+          "cagr": 0.19614703751701046,
+          "volatility": 0.12363494675066798,
+          "sharpe": 1.5191805104896245,
+          "maxDrawdown": -0.085124427889254,
+          "calmar": 2.304239128305164,
+          "score": 1.366390525422955,
+          "endingValue": 168.57963484195116
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.09823423429336686,
-          "volatility": 0.11741208100913605,
-          "sharpe": 0.853976953549874,
-          "maxDrawdown": -0.13300001068578393,
-          "calmar": 0.7386032060211473,
-          "score": 0.592570589835209,
-          "endingValue": 150.94680521276356
+          "cagr": 0.11946889393999927,
+          "volatility": 0.11695514203870969,
+          "sharpe": 1.0242452658939756,
+          "maxDrawdown": -0.10262546506632408,
+          "calmar": 1.1641252379493698,
+          "score": 0.7998853945304676,
+          "endingValue": 164.45310536972508
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 73.91203114104503,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.37674540964544084
+        "score": 62.138457763865915,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.19998525715039844
       }
     },
     {
       "name": "S12 Adaptive Volatility Compounder+",
       "group": "Custom Tactical",
-      "note": "Upgraded adaptive volatility compounder: target volatility changes with market stress and stock selection includes trend confirmation.",
+      "note": "Version 3.5 adaptive volatility compounder: dynamic target volatility plus JP Morgan liquidity, regime and low-vol scoring.",
       "fullSample": {
-        "cagr": 0.17559409544393545,
-        "volatility": 0.15019788741178336,
-        "sharpe": 1.1551267965434973,
-        "maxDrawdown": -0.23228289773812283,
-        "winRate": 0.6459627329192547,
-        "endingValue": 886.9487189393051,
-        "annualTurnover": 7.300124706502384,
-        "totalCost": 16.306914057679407
+        "cagr": 0.17052480699457373,
+        "volatility": 0.14139960263465193,
+        "sharpe": 1.1873322147426817,
+        "maxDrawdown": -0.18352899445151893,
+        "winRate": 0.6645962732919255,
+        "endingValue": 838.4435661979785,
+        "annualTurnover": 14.194434404395974,
+        "totalCost": 32.68961265786908
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "targetVol": ".07/.095/.13 by stress",
           "momentumBlend": "6M + 12-1M",
-          "maxGross": 1.8
+          "maxGross": 1.8,
+          "jpMorganOverlay": "regime + liquidity + low-vol scoring"
         },
         "candidateGrid": {
           "lowStressVol": [
@@ -1313,45 +1346,45 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.19538354586966844,
-          "volatility": 0.13909610145168824,
-          "sharpe": 1.3595821036151239,
-          "maxDrawdown": -0.18615900861587142,
-          "calmar": 1.0495519251116734,
-          "score": 0.9080616232987206,
-          "endingValue": 287.31561923853394
+          "cagr": 0.1968972466841863,
+          "volatility": 0.13556839780093055,
+          "sharpe": 1.4014046603022838,
+          "maxDrawdown": -0.14819683377699722,
+          "calmar": 1.3286197934597725,
+          "score": 1.0143983517962598,
+          "endingValue": 289.4738943610076
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.1418137780874109,
-          "volatility": 0.12013833455980487,
-          "sharpe": 1.1673486496972105,
-          "maxDrawdown": -0.06761679564746248,
-          "calmar": 2.097315862567541,
-          "score": 1.1477399715692607,
-          "endingValue": 147.2098783851395
+          "cagr": 0.10397271666615104,
+          "volatility": 0.10574159836789648,
+          "sharpe": 0.9901808729302333,
+          "maxDrawdown": -0.06708910171426907,
+          "calmar": 1.5497705888054432,
+          "score": 0.9038036592888109,
+          "endingValue": 133.43151143079527
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.19452658601779738,
-          "volatility": 0.13641829294609337,
-          "sharpe": 1.3713676194732451,
-          "maxDrawdown": -0.11075242947336994,
-          "calmar": 1.7564091997148528,
-          "score": 1.132962945730079,
-          "endingValue": 218.38246913664833
+          "cagr": 0.20091054032657674,
+          "volatility": 0.13565983516631216,
+          "sharpe": 1.422493209858341,
+          "maxDrawdown": -0.106920076437516,
+          "calmar": 1.8790721726053823,
+          "score": 1.1931515885741166,
+          "endingValue": 224.1187467346756
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 68.06176201151436,
-        "decision": "Tune",
-        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.08814607876623572
+        "score": 44.00317520275463,
+        "decision": "Watch",
+        "reason": "Research candidate only; evidence is not strong enough for approval.",
+        "stabilityPenalty": 0.1917129447659979
       }
     }
   ],
@@ -1359,24 +1392,26 @@
     {
       "name": "V1 Momentum-Vol Research Model",
       "group": "Core",
-      "note": "252-day stock momentum; top 3; inverse vol; 10.0% vol target",
+      "note": "Version 3.5 - JP Morgan AI factor enhancement: 252-day stock momentum plus JP Morgan-style quality, low-vol and crowding controls; top 3; 10.0% vol target",
       "fullSample": {
-        "cagr": 0.12585521907429276,
-        "volatility": 0.11394483487388549,
-        "sharpe": 1.0999284305067447,
-        "maxDrawdown": -0.1388468905424649,
-        "winRate": 0.6086956521739131,
-        "endingValue": 494.6692766080021,
-        "annualTurnover": 3.1138055551742583,
-        "totalCost": 4.891118814338805
+        "cagr": 0.1367999364608461,
+        "volatility": 0.1125954383113689,
+        "sharpe": 1.1980223346809682,
+        "maxDrawdown": -0.13604116143220046,
+        "winRate": 0.6459627329192547,
+        "endingValue": 564.4718886635011,
+        "annualTurnover": 7.913962075975761,
+        "totalCost": 14.562755700601127
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "lookbackDays": 252,
           "skipDays": 21,
           "topN": 3,
           "targetVol": 0.1,
-          "maxGross": 2
+          "maxGross": 2,
+          "jpMorganOverlay": "quality + low-vol + crowding"
         },
         "candidateGrid": {
           "lookbackDays": [
@@ -1404,75 +1439,77 @@
             2
           ]
         },
-        "trainingMeaning": "V1 training means selecting stable momentum, selection and volatility-scaling parameters."
+        "trainingMeaning": "V1 3.5 training means selecting stable momentum parameters while testing whether JP Morgan-style quality, low-vol and crowding overlays improve robustness."
       },
       "splitResults": {
         "train": {
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.12404078754058268,
-          "volatility": 0.10197184797750981,
-          "sharpe": 1.2021692671791875,
-          "maxDrawdown": -0.11701400792759142,
-          "calmar": 1.0600507557807903,
-          "score": 0.8472899961721123,
-          "endingValue": 199.67001970817756
+          "cagr": 0.1649575984469165,
+          "volatility": 0.10591112689802229,
+          "sharpe": 1.5020157836522543,
+          "maxDrawdown": -0.10208235398085352,
+          "calmar": 1.615926671105721,
+          "score": 1.1504768685771456,
+          "endingValue": 246.6845631474221
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.07616417630907013,
-          "volatility": 0.09168339142454973,
-          "sharpe": 0.8469970916211905,
-          "maxDrawdown": -0.053119003000952736,
-          "calmar": 1.4338404715108086,
-          "score": 0.8059889323826831,
-          "endingValue": 123.86590333059777
+          "cagr": 0.07133699279388805,
+          "volatility": 0.09286410360722974,
+          "sharpe": 0.7886272524863704,
+          "maxDrawdown": -0.05650846435823087,
+          "calmar": 1.2624125182672266,
+          "score": 0.7279551726632116,
+          "endingValue": 122.25281207711912
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.16574716774284415,
-          "volatility": 0.11559188234785768,
-          "sharpe": 1.3830350104020568,
-          "maxDrawdown": -0.07078386351952537,
-          "calmar": 2.3415953792508604,
-          "score": 1.3177659821042311,
-          "endingValue": 196.18973591217875
+          "cagr": 0.149638794989424,
+          "volatility": 0.11725361970895237,
+          "sharpe": 1.2493261047045867,
+          "maxDrawdown": -0.0638376390742127,
+          "calmar": 2.3440527744997826,
+          "score": 1.2590288155595775,
+          "endingValue": 184.9060201234296
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 63.7316445215164,
-        "decision": "Tune",
-        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.23836136947186937
+        "score": 46.74542028785625,
+        "decision": "Watch",
+        "reason": "Research candidate only; evidence is not strong enough for approval.",
+        "stabilityPenalty": 0.3065392957029403
       }
     },
     {
       "name": "V2 HMM-GARCH-MVO",
       "group": "V2",
-      "note": "Two-state Gaussian HMM, GARCH(1,1) likelihood grid and capped long-only MVO",
+      "note": "Version 3.5 HMM-GARCH-MVO: two-state regime model, GARCH risk forecast, capped MVO, and JP Morgan AI factor expected-return adjustment.",
       "fullSample": {
-        "cagr": 0.2773008267797581,
-        "volatility": 0.19946584191898156,
-        "sharpe": 1.3302609024738576,
-        "maxDrawdown": -0.3245653083128771,
-        "winRate": 0.6521739130434783,
-        "endingValue": 2715.714393816558,
-        "annualTurnover": 9.936277644137618,
-        "totalCost": 53.217720025232154
+        "cagr": 0.21678536719978547,
+        "volatility": 0.18658372151985542,
+        "sharpe": 1.1480532828420642,
+        "maxDrawdown": -0.3225899933228652,
+        "winRate": 0.6211180124223602,
+        "endingValue": 1415.6708780080726,
+        "annualTurnover": 28.324970760180605,
+        "totalCost": 88.00009417724996
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "historyDays": 504,
           "covarianceDays": 252,
           "lowRiskAversion": 1.5,
           "highRiskAversion": 6,
-          "maxWeight": 0.6
+          "maxWeight": 0.6,
+          "expectedReturnOverlay": "JPM_AI_Score"
         },
         "candidateGrid": {
           "historyDays": [
@@ -1506,76 +1543,78 @@
             0.1
           ]
         },
-        "trainingMeaning": "V2 training means estimating HMM/GARCH on the training window and selecting MVO hyperparameters on validation."
+        "trainingMeaning": "V2 3.5 training means estimating HMM/GARCH and testing whether the JP Morgan AI factor overlay improves MVO expected-return inputs."
       },
       "splitResults": {
         "train": {
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.26607427576540643,
-          "volatility": 0.16067206400345738,
-          "sharpe": 1.5579797757790854,
-          "maxDrawdown": -0.1680803969668937,
-          "calmar": 1.5830178924304559,
-          "score": 1.1591882271330356,
-          "endingValue": 403.56992423158005
+          "cagr": 0.1845657693641649,
+          "volatility": 0.14889976853994336,
+          "sharpe": 1.2156668340170542,
+          "maxDrawdown": -0.14786827610754671,
+          "calmar": 1.2481769195031907,
+          "score": 0.9067163235478769,
+          "endingValue": 272.27712663851906
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.3924374126396599,
-          "volatility": 0.22964912894421735,
-          "sharpe": 1.571318032643312,
-          "maxDrawdown": -0.20581561619997402,
-          "calmar": 1.9067426460894052,
-          "score": 1.2585343468963146,
-          "endingValue": 262.5564746318319
+          "cagr": 0.27317975450481846,
+          "volatility": 0.1797396541059733,
+          "sharpe": 1.442017521405142,
+          "maxDrawdown": -0.15298226905823142,
+          "calmar": 1.7856955331263578,
+          "score": 1.1693183176643982,
+          "endingValue": 202.22675844065884
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.24169902516130626,
-          "volatility": 0.22261202309570466,
-          "sharpe": 1.0833753383197462,
-          "maxDrawdown": -0.23581459876066668,
-          "calmar": 1.0249536136929835,
-          "score": 0.7714235264757142,
-          "endingValue": 258.8995830533588
+          "cagr": 0.22613908102182312,
+          "volatility": 0.20727017360373373,
+          "sharpe": 1.0919603129308815,
+          "maxDrawdown": -0.2700050671809664,
+          "calmar": 0.8375364336042522,
+          "score": 0.7156425641820757,
+          "endingValue": 245.62796999318343
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 59.99629519814747,
-        "decision": "Tune",
-        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.19793378410813672
+        "score": 16.5844823178096,
+        "decision": "Reject",
+        "reason": "Weak out-of-sample or risk-adjusted evidence under the current settings.",
+        "stabilityPenalty": 0.14202866322837449
       }
     },
     {
       "name": "V3 Boosted Trees + Attribution",
       "group": "V3",
-      "note": "Walk-forward regularized gradient-boosted decision stumps with additive feature attribution",
+      "note": "Version 3.5 walk-forward boosted stumps with JP Morgan AI factor features, regime/liquidity/crowding inputs and additive feature attribution.",
       "fullSample": {
-        "cagr": 0.12539555052557505,
-        "volatility": 0.10876460620063243,
-        "sharpe": 1.1433261273764899,
-        "maxDrawdown": -0.15501552981119027,
-        "winRate": 0.6770186335403726,
-        "endingValue": 490.6082881869892,
-        "annualTurnover": 5.635434998637408,
-        "totalCost": 8.070968933836308
+        "cagr": 0.12774728217850928,
+        "volatility": 0.11064180795621557,
+        "sharpe": 1.1448293878160432,
+        "maxDrawdown": -0.14466799878611747,
+        "winRate": 0.6459627329192547,
+        "endingValue": 505.4278675494516,
+        "annualTurnover": 18.94512867858709,
+        "totalCost": 35.12826275541287
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "rounds": 40,
           "learningRate": 0.05,
           "lambda": 2,
           "topN": 5,
           "targetVol": 0.1,
-          "maxGross": 2
+          "maxGross": 2,
+          "featureSet": "price + JPM_AI + regime + liquidity + crowding"
         },
         "candidateGrid": {
           "rounds": [
@@ -1606,55 +1645,56 @@
           "featureSet": [
             "price_only",
             "price_plus_risk",
-            "price_risk_drawdown"
+            "price_risk_drawdown",
+            "price_plus_jpm_ai_factor"
           ]
         },
-        "trainingMeaning": "V3 training means fitting the boosted model on training data and choosing ML hyperparameters by validation performance."
+        "trainingMeaning": "V3 3.5 training means fitting boosted stumps with JP Morgan-style AI factor features and validating feature/parameter robustness."
       },
       "splitResults": {
         "train": {
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1234471574544469,
-          "volatility": 0.09698133808605196,
-          "sharpe": 1.252662023763464,
-          "maxDrawdown": -0.10085437600414271,
-          "calmar": 1.2240138935505998,
-          "score": 0.9208166411583245,
-          "endingValue": 199.04722239152056
+          "cagr": 0.1605713632080663,
+          "volatility": 0.10275337863431551,
+          "sharpe": 1.5073252030237057,
+          "maxDrawdown": -0.11042548105381678,
+          "calmar": 1.454115134257921,
+          "score": 1.103488333532662,
+          "endingValue": 241.24240669742377
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.15538336392993313,
-          "volatility": 0.07093501530675764,
-          "sharpe": 2.0821787613233234,
-          "maxDrawdown": -0.03940478792334556,
-          "calmar": 3.943261012651599,
-          "score": 2.1160182675986405,
-          "endingValue": 152.36930511269776
+          "cagr": 0.16562403634056588,
+          "volatility": 0.0861376334088782,
+          "sharpe": 1.8316061672851398,
+          "maxDrawdown": -0.056223416308774476,
+          "calmar": 2.945819503940707,
+          "score": 1.7023462848296476,
+          "endingValue": 156.3406798344458
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.11860592516383917,
-          "volatility": 0.10127496538508994,
-          "sharpe": 1.155043565901253,
-          "maxDrawdown": -0.10494232569351125,
-          "calmar": 1.1302010354738379,
-          "score": 0.8483356827283641,
-          "endingValue": 163.64375616152614
+          "cagr": 0.07378573157355928,
+          "volatility": 0.09807354877186557,
+          "sharpe": 0.7747318771111662,
+          "maxDrawdown": -0.10323417554986358,
+          "calmar": 0.7147413265088722,
+          "score": 0.5527283250977001,
+          "endingValue": 136.86205143875912
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 100,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.34039537895171745
+        "score": 52.085161813502715,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.3948474769771177
       }
     }
   ],
@@ -1662,23 +1702,25 @@
     {
       "name": "S1 AI Capex Momentum+",
       "group": "Custom AI",
-      "note": "Upgraded AI infrastructure strategy: 12-1 stock momentum plus QQQ/XLK AI-risk confirmation, volatility targeting and hedge sleeve.",
+      "note": "Version 3.5 JP Morgan AI infrastructure strategy: capex momentum plus AI factor confirmation, liquidity/risk penalty, volatility targeting and hedge sleeve.",
       "fullSample": {
-        "cagr": 0.1753076407522327,
-        "volatility": 0.13612551665071423,
-        "sharpe": 1.2579154123946708,
-        "maxDrawdown": -0.18764778566737328,
-        "winRate": 0.6335403726708074,
-        "endingValue": 884.2601339253937,
-        "annualTurnover": 3.3382956294262196,
-        "totalCost": 7.732262339511569
+        "cagr": 0.18214872918212643,
+        "volatility": 0.1291873199241749,
+        "sharpe": 1.3634668769232383,
+        "maxDrawdown": -0.18194587951398145,
+        "winRate": 0.6521739130434783,
+        "endingValue": 957.5316487071786,
+        "annualTurnover": 6.691899215013612,
+        "totalCost": 15.930933356223983
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "aiFactorConfirm": "QQQ/XLK 126D",
           "stockMomentum": "12-1M + 3M",
           "targetVol": 0.12,
-          "hedgeSleeve": "IEF/GLD/TLT"
+          "hedgeSleeve": "IEF/GLD/TLT",
+          "jpMorganOverlay": "AI infra + liquidity + crowding penalty"
         },
         "candidateGrid": {
           "targetVol": [
@@ -1709,66 +1751,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1826570913517258,
-          "volatility": 0.12555965484677023,
-          "sharpe": 1.406758069971195,
-          "maxDrawdown": -0.15100803591286782,
-          "calmar": 1.2095852399346456,
-          "score": 0.9808158998761447,
-          "endingValue": 269.6929087442459
+          "cagr": 0.18275887951150094,
+          "volatility": 0.12206622191146643,
+          "sharpe": 1.4437728750510772,
+          "maxDrawdown": -0.13584803937443723,
+          "calmar": 1.3453184922880161,
+          "score": 1.039708537521946,
+          "endingValue": 269.8302064599622
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.17079187358190318,
-          "volatility": 0.12016576912712901,
-          "sharpe": 1.3787918758382611,
-          "maxDrawdown": -0.07519381777586398,
-          "calmar": 2.271355260760874,
-          "score": 1.2943435405778934,
-          "endingValue": 158.37034641808992
+          "cagr": 0.20644768968469251,
+          "volatility": 0.11158736688314355,
+          "sharpe": 1.7482898950341614,
+          "maxDrawdown": -0.07089551022972085,
+          "calmar": 2.9119994907399005,
+          "score": 1.6532407489643708,
+          "endingValue": 172.84760915201454
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.16959345634561251,
-          "volatility": 0.13375381954187462,
-          "sharpe": 1.2365431879671285,
-          "maxDrawdown": -0.11612003134172344,
-          "calmar": 1.4605012966843334,
-          "score": 0.9829828204563356,
-          "endingValue": 199.05015738539177
+          "cagr": 0.1716959532516782,
+          "volatility": 0.12849257095265582,
+          "sharpe": 1.3002622804767971,
+          "maxDrawdown": -0.12493425645615774,
+          "calmar": 1.3742904317994655,
+          "score": 0.9849117301087826,
+          "endingValue": 201.06295749692248
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 82.17998833922366,
+        "score": 89.27172892036118,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.06808236836332078
+        "stabilityPenalty": 0.15278371659326467
       }
     },
     {
       "name": "S2 Quality Growth Barbell+",
       "group": "Custom AI",
-      "note": "Upgraded quality-growth barbell: quality proxy, growth acceleration, low-vol hedge that expands during market stress.",
+      "note": "Version 3.5 quality-growth barbell: quality proxy, AI factor score, growth acceleration, low-vol hedge that expands during market stress.",
       "fullSample": {
-        "cagr": 0.30559379363961714,
-        "volatility": 0.19470677613153628,
-        "sharpe": 1.4708450363658165,
-        "maxDrawdown": -0.2763510844197141,
-        "winRate": 0.6956521739130435,
-        "endingValue": 3652.6123651188695,
-        "annualTurnover": 4.062568731666302,
-        "totalCost": 30.578291628562656
+        "cagr": 0.29732601722517127,
+        "volatility": 0.19414055568970748,
+        "sharpe": 1.4418737109739903,
+        "maxDrawdown": -0.2729832112192695,
+        "winRate": 0.7018633540372671,
+        "endingValue": 3365.077169043572,
+        "annualTurnover": 9.039981031229837,
+        "totalCost": 54.54580115557872
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "qualityWeight": 0.52,
           "growthWeight": 0.4,
-          "lowVolHedge": ".08 to .18"
+          "lowVolHedge": ".08 to .18",
+          "jpMorganOverlay": "quality + AI score + low-vol hedge"
         },
         "candidateGrid": {
           "qualityWeight": [
@@ -1794,37 +1838,37 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.314732439429366,
-          "volatility": 0.14817121477356626,
-          "sharpe": 1.9391415467675108,
-          "maxDrawdown": -0.18217968647065952,
-          "calmar": 1.727593484908398,
-          "score": 1.3726737728708334,
-          "endingValue": 504.40044806137803
+          "cagr": 0.2665075139258186,
+          "volatility": 0.13993324851493316,
+          "sharpe": 1.7728789322024026,
+          "maxDrawdown": -0.1421009419957141,
+          "calmar": 1.875480276083298,
+          "score": 1.3462295081164992,
+          "endingValue": 404.3872872186963
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.36588963600837365,
-          "volatility": 0.16896420500654424,
-          "sharpe": 1.9494482031717493,
-          "maxDrawdown": -0.10155983038933802,
-          "calmar": 3.6027003452615607,
-          "score": 1.9479058119668216,
-          "endingValue": 248.2254669779634
+          "cagr": 0.37690055537122324,
+          "volatility": 0.16558856845860598,
+          "sharpe": 2.035405084352018,
+          "maxDrawdown": -0.09491965938522584,
+          "calmar": 3.9707322783533656,
+          "score": 2.097660005525895,
+          "endingValue": 254.105267963798
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.2662362357275183,
-          "volatility": 0.18212869559982336,
-          "sharpe": 1.3897382734969213,
-          "maxDrawdown": -0.14269990567108093,
-          "calmar": 1.8657071598994954,
-          "score": 1.170824380476355,
-          "endingValue": 282.14700069440164
+          "cagr": 0.2904709008417454,
+          "volatility": 0.19200163876111584,
+          "sharpe": 1.4312351810040485,
+          "maxDrawdown": -0.1531136478823215,
+          "calmar": 1.8970934652735367,
+          "score": 1.1978725062456506,
+          "endingValue": 307.7311539200976
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
@@ -1832,29 +1876,31 @@
         "score": 100,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.18199790059307244
+        "stabilityPenalty": 0.17345891731239707
       }
     },
     {
       "name": "S3 Crowding-Aware Momentum+",
       "group": "Custom Risk",
-      "note": "Upgraded anti-crowding momentum: penalizes one-month chase, volatility spikes and crowded momentum ETF conditions.",
+      "note": "Version 3.5 anti-crowding momentum: JP Morgan-style crowding, liquidity and one-month chase penalties.",
       "fullSample": {
-        "cagr": 0.11042184743189254,
-        "volatility": 0.11660815216240668,
-        "sharpe": 0.958844775578788,
-        "maxDrawdown": -0.16480801383402077,
-        "winRate": 0.6024844720496895,
-        "endingValue": 409.8350210112972,
-        "annualTurnover": 4.9512896692308805,
-        "totalCost": 6.919211271696975
+        "cagr": 0.13108485397595326,
+        "volatility": 0.11270714955200312,
+        "sharpe": 1.1521830192684015,
+        "maxDrawdown": -0.13533305032154574,
+        "winRate": 0.6459627329192547,
+        "endingValue": 526.2330231017256,
+        "annualTurnover": 10.877400570822726,
+        "totalCost": 17.468686968648736
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "momentum": "12-1M",
           "chasePenalty": "1M",
           "crowdingProxy": "MTUM",
-          "targetVol": 0.1
+          "targetVol": 0.1,
+          "jpMorganOverlay": "liquidity + crowding-aware AI score"
         },
         "candidateGrid": {
           "chasePenalty": [
@@ -1880,66 +1926,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.10056435492687421,
-          "volatility": 0.10227271879483926,
-          "sharpe": 0.991066073108739,
-          "maxDrawdown": -0.13287898765057893,
-          "calmar": 0.7568115674640759,
-          "score": 0.6597353043730975,
-          "endingValue": 176.23965953469826
+          "cagr": 0.1136673236090413,
+          "volatility": 0.10364566711117151,
+          "sharpe": 1.0938907307301418,
+          "maxDrawdown": -0.10579130103450529,
+          "calmar": 1.0744486786486078,
+          "score": 0.8040063023196955,
+          "endingValue": 189.01686804549513
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.09430685346189449,
-          "volatility": 0.08244494541071119,
-          "sharpe": 1.1367867340595215,
-          "maxDrawdown": -0.04798451623105693,
-          "calmar": 1.9653600967400489,
-          "score": 1.0963636077256935,
-          "endingValue": 130.0535698235652
+          "cagr": 0.10935164957525156,
+          "volatility": 0.08733916409407858,
+          "sharpe": 1.2349976453665963,
+          "maxDrawdown": -0.04133996343476343,
+          "calmar": 2.645180123291934,
+          "score": 1.3451689810590721,
+          "endingValue": 135.33601073702357
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.139688734723171,
-          "volatility": 0.10507151193046699,
-          "sharpe": 1.2952662385094833,
-          "maxDrawdown": -0.09290220560611029,
-          "calmar": 1.5036105312227754,
-          "score": 1.0246627461354891,
-          "endingValue": 177.63683735490662
+          "cagr": 0.18019006417294747,
+          "volatility": 0.11108512785191224,
+          "sharpe": 1.5515407000186463,
+          "maxDrawdown": -0.060573414046054985,
+          "calmar": 2.9747384559824535,
+          "score": 1.5845575103985214,
+          "endingValue": 207.56775094858915
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 70.83124567287497,
+        "score": 71.336867531231,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.13333863242795232
+        "stabilityPenalty": 0.18118793664002752
       }
     },
     {
       "name": "S4 Low-Vol Alpha Shield+",
       "group": "Custom Risk",
-      "note": "Upgraded low-vol shield: medium trend, 200-day trend confirmation, drawdown penalty and lower target volatility.",
+      "note": "Version 3.5 low-vol alpha shield: medium trend plus quality, drawdown, low-vol and crowding-aware JP Morgan controls.",
       "fullSample": {
-        "cagr": 0.13405775313874324,
-        "volatility": 0.10574279146370902,
-        "sharpe": 1.2456969843584649,
-        "maxDrawdown": -0.15302127991876568,
-        "winRate": 0.6956521739130435,
-        "endingValue": 547.5035080118057,
-        "annualTurnover": 6.54607022107716,
-        "totalCost": 11.527338497869835
+        "cagr": 0.1135208519330202,
+        "volatility": 0.09960242666698692,
+        "sharpe": 1.1322509065992434,
+        "maxDrawdown": -0.12560817092889576,
+        "winRate": 0.6521739130434783,
+        "endingValue": 427.8086314028903,
+        "annualTurnover": 11.593257231455201,
+        "totalCost": 18.08818482528794
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "trend": "126D + 200D confirm",
           "volPenalty": 0.65,
-          "targetVol": 0.085
+          "targetVol": 0.085,
+          "jpMorganOverlay": "quality + low-vol + crowding controls"
         },
         "candidateGrid": {
           "volPenalty": [
@@ -1965,65 +2013,67 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1533335853602633,
-          "volatility": 0.10319583004896103,
-          "sharpe": 1.4404467195909685,
-          "maxDrawdown": -0.12165641760216661,
-          "calmar": 1.2603822172512547,
-          "score": 1.0141500472310956,
-          "endingValue": 232.48048203042296
+          "cagr": 0.12762478997438076,
+          "volatility": 0.09798728069637948,
+          "sharpe": 1.2791911743999467,
+          "maxDrawdown": -0.09977494174016277,
+          "calmar": 1.279126679990909,
+          "score": 0.9493965383032323,
+          "endingValue": 203.46461607671822
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.12309292326980104,
-          "volatility": 0.09240576101272506,
-          "sharpe": 1.3064700356443653,
-          "maxDrawdown": -0.04724794141907318,
-          "calmar": 2.605254738571754,
-          "score": 1.3647631434695833,
-          "endingValue": 140.282219980081
+          "cagr": 0.12195664747750579,
+          "volatility": 0.09042731135341803,
+          "sharpe": 1.3217106746532532,
+          "maxDrawdown": -0.04988313369422248,
+          "calmar": 2.444847355121776,
+          "score": 1.3232356967610746,
+          "endingValue": 139.86878320285453
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.12832779605926214,
-          "volatility": 0.08756473603751903,
-          "sharpe": 1.421040768180455,
-          "maxDrawdown": -0.07239680110275104,
-          "calmar": 1.7725616892537777,
-          "score": 1.1639971723470628,
-          "endingValue": 169.98624751019972
+          "cagr": 0.10406130425945204,
+          "volatility": 0.09629345307870182,
+          "sharpe": 1.0766679682614915,
+          "maxDrawdown": -0.07108705529487191,
+          "calmar": 1.4638572919894013,
+          "score": 0.9165490677850043,
+          "endingValue": 154.7075065038408
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 81.31291619265085,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.05211370750950118
+        "score": 62.551738400398115,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.10681395246713812
       }
     },
     {
       "name": "S5 Regime-Switch Equity Hedge+",
       "group": "Custom Macro",
-      "note": "Upgraded regime hedge: blends SPY trend, HYG/IEF credit momentum, TLT rates signal and volatility stress into a risk-on score.",
+      "note": "Version 3.5 regime hedge: JP Morgan macro regime, liquidity, credit and volatility stress decide equity/hedge budget.",
       "fullSample": {
-        "cagr": 0.22048398300982575,
-        "volatility": 0.16580397763931298,
-        "sharpe": 1.2878724317227006,
-        "maxDrawdown": -0.26480820163833096,
-        "winRate": 0.6832298136645962,
-        "endingValue": 1476.0766961190634,
-        "annualTurnover": 8.703948142403947,
-        "totalCost": 30.72163804423294
+        "cagr": 0.1619765838136875,
+        "volatility": 0.11953286129790508,
+        "sharpe": 1.3190776187737268,
+        "maxDrawdown": -0.18281310896305458,
+        "winRate": 0.6894409937888198,
+        "endingValue": 759.5622729417082,
+        "annualTurnover": 13.642263548983117,
+        "totalCost": 28.73940320275247
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "regimeScore": "SPY trend + HYG/IEF + TLT + vol",
-          "hedgeSleeve": ".18 or .62"
+          "hedgeSleeve": ".18 or .62",
+          "jpMorganOverlay": "macro regime + liquidity score"
         },
         "candidateGrid": {
           "regimeThreshold": [
@@ -2049,66 +2099,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.23560512743139173,
-          "volatility": 0.129382814432766,
-          "sharpe": 1.711101980586738,
-          "maxDrawdown": -0.08818427876061741,
-          "calmar": 2.671736172736173,
-          "score": 1.5626983152088223,
-          "endingValue": 349.4252577916641
+          "cagr": 0.17764152356397545,
+          "volatility": 0.11827906373746776,
+          "sharpe": 1.4490534010092582,
+          "maxDrawdown": -0.11024601212419016,
+          "calmar": 1.6113192680735284,
+          "score": 1.1244452096638056,
+          "endingValue": 262.99914026038823
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.28070438478345405,
-          "volatility": 0.1498847819868723,
-          "sharpe": 1.7383468294122217,
-          "maxDrawdown": -0.10808722578835173,
-          "calmar": 2.59701720287565,
-          "score": 1.5505525115193597,
-          "endingValue": 205.7314484023283
+          "cagr": 0.16218542398933478,
+          "volatility": 0.09910046858563704,
+          "sharpe": 1.573462390698478,
+          "maxDrawdown": -0.05458087850826443,
+          "calmar": 2.9714696505806018,
+          "score": 1.5940408831376691,
+          "endingValue": 154.99968153074056
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.18527096659314268,
-          "volatility": 0.1743847665856054,
-          "sharpe": 1.05995958144619,
-          "maxDrawdown": -0.16103685939445678,
-          "calmar": 1.1504879521981046,
-          "score": 0.8060245113707712,
-          "endingValue": 211.04410740712925
+          "cagr": 0.15577667792896555,
+          "volatility": 0.11439024161086736,
+          "sharpe": 1.3260741091425352,
+          "maxDrawdown": -0.11628849498552118,
+          "calmar": 1.339570848761616,
+          "score": 0.9869757542440736,
+          "endingValue": 189.29732718632235
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 73.4362631401788,
+        "score": 72.25154447931203,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.25549504046444055
+        "stabilityPenalty": 0.08533444091168295
       }
     },
     {
       "name": "S6 Credit-Liquidity Accelerator+",
       "group": "Custom Macro",
-      "note": "Upgraded credit-liquidity accelerator: uses high-yield/Treasury relative momentum as a credit cycle proxy before increasing equity beta.",
+      "note": "Version 3.5 credit-liquidity accelerator: high-yield/Treasury proxy plus JP Morgan liquidity and regime score before increasing beta.",
       "fullSample": {
-        "cagr": 0.16307991935433663,
-        "volatility": 0.13006119042406172,
-        "sharpe": 1.2295974578665914,
-        "maxDrawdown": -0.18472397825874753,
-        "winRate": 0.6149068322981367,
-        "endingValue": 771.3307085146239,
-        "annualTurnover": 6.2185370121896515,
-        "totalCost": 17.211341722829427
+        "cagr": 0.15703789391832856,
+        "volatility": 0.12211132134968924,
+        "sharpe": 1.2587865803355591,
+        "maxDrawdown": -0.21216348407005858,
+        "winRate": 0.6583850931677019,
+        "endingValue": 717.0016518812647,
+        "annualTurnover": 13.417237844503754,
+        "totalCost": 31.076193353040377
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "creditProxy": "HYG minus IEF",
           "targetVol": 0.125,
-          "riskOffHedge": 0.52
+          "riskOffHedge": 0.52,
+          "jpMorganOverlay": "credit-liquidity + regime score"
         },
         "candidateGrid": {
           "targetVol": [
@@ -2134,65 +2186,67 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.18498976780531584,
-          "volatility": 0.1370210659675559,
-          "sharpe": 1.3132596276227226,
-          "maxDrawdown": -0.14357747729509918,
-          "calmar": 1.2884316627537669,
-          "score": 0.9631385835268452,
-          "endingValue": 272.8539750456028
+          "cagr": 0.15740195497498566,
+          "volatility": 0.11521901041572441,
+          "sharpe": 1.3321200852978234,
+          "maxDrawdown": -0.1196104445150652,
+          "calmar": 1.3159549369884713,
+          "score": 0.9822794750290554,
+          "endingValue": 237.37241330555992
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.2568838429915976,
-          "volatility": 0.10564480110939714,
-          "sharpe": 2.2348577132757725,
-          "maxDrawdown": -0.0633578172539766,
-          "calmar": 4.054493259479745,
-          "score": 2.2156981670926235,
-          "endingValue": 194.77171145652562
+          "cagr": 0.23566606688114722,
+          "volatility": 0.0999289277677043,
+          "sharpe": 2.1839643116068537,
+          "maxDrawdown": -0.06667468761168605,
+          "calmar": 3.5345657448546053,
+          "score": 2.036486194918297,
+          "endingValue": 185.33878267323726
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.0768270375447968,
-          "volatility": 0.12230765542159518,
-          "sharpe": 0.663126132075152,
-          "maxDrawdown": -0.1436743474873864,
-          "calmar": 0.5347303738514747,
-          "score": 0.4444584368405222,
-          "endingValue": 138.43865266720852
+          "cagr": 0.1165564381817934,
+          "volatility": 0.13482879510025247,
+          "sharpe": 0.8842836473034383,
+          "maxDrawdown": -0.14773376433609697,
+          "calmar": 0.7889627581452904,
+          "score": 0.6198430922965247,
+          "endingValue": 162.57552077855163
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 94.34742298067611,
+        "score": 77.2861380578871,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.5626105500159471
+        "stabilityPenalty": 0.4501143461132432
       }
     },
     {
       "name": "S7 Revision-Proxy Growth Rank+",
       "group": "Custom AI",
-      "note": "Upgraded revision proxy: adds short-term acceleration and trend confirmation to the price-based earnings-revision proxy.",
+      "note": "Version 3.5 revision proxy: acceleration, AI factor score, quality and volatility stability proxy analyst-revision behavior.",
       "fullSample": {
-        "cagr": 0.1666787634566964,
-        "volatility": 0.13414372197646998,
-        "sharpe": 1.219452832694444,
-        "maxDrawdown": -0.19147381820008702,
-        "winRate": 0.6770186335403726,
-        "endingValue": 800.7089140959473,
-        "annualTurnover": 7.280702330012627,
-        "totalCost": 16.061178357885108
+        "cagr": 0.17938482680360002,
+        "volatility": 0.12965162215651133,
+        "sharpe": 1.34098754651907,
+        "maxDrawdown": -0.14845629539352123,
+        "winRate": 0.6894409937888198,
+        "endingValue": 927.7236024615347,
+        "annualTurnover": 13.009896638757771,
+        "totalCost": 30.220179586152966
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "features": "1M/3M/6M momentum + vol stability + 200D trend",
-          "targetVol": 0.115
+          "targetVol": 0.115,
+          "jpMorganOverlay": "AI score + quality + acceleration proxy"
         },
         "candidateGrid": {
           "accelerationWeight": [
@@ -2218,66 +2272,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1828419393664784,
-          "volatility": 0.11555037780513684,
-          "sharpe": 1.5186556745834492,
-          "maxDrawdown": -0.12879748370464095,
-          "calmar": 1.4196080086919438,
-          "score": 1.0963977077996712,
-          "endingValue": 269.9422853897103
+          "cagr": 0.1837649746949468,
+          "volatility": 0.1232953350604424,
+          "sharpe": 1.4371505277778782,
+          "maxDrawdown": -0.11100939723375669,
+          "calmar": 1.6554001667803486,
+          "score": 1.132236847810774,
+          "endingValue": 271.1904123084284
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.19121389441908732,
-          "volatility": 0.12200545959382417,
-          "sharpe": 1.5027704535279052,
-          "maxDrawdown": -0.07242268316433953,
-          "calmar": 2.64024869094107,
-          "score": 1.4610790430534444,
-          "endingValue": 166.56040066541394
+          "cagr": 0.17175505916900846,
+          "volatility": 0.10966518015358465,
+          "sharpe": 1.5075477907079884,
+          "maxDrawdown": -0.06707034334924289,
+          "calmar": 2.560819739279705,
+          "score": 1.439935393267582,
+          "endingValue": 158.7505408236005
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.14181008315976085,
-          "volatility": 0.1180387460607059,
-          "sharpe": 1.1808767009618644,
-          "maxDrawdown": -0.11173687348469286,
-          "calmar": 1.2691431103912874,
-          "score": 0.9009637612017559,
-          "endingValue": 179.09436020682952
+          "cagr": 0.19351465843821414,
+          "volatility": 0.12572623950124512,
+          "sharpe": 1.4749644146371166,
+          "maxDrawdown": -0.09453258812487575,
+          "calmar": 2.0470682362211954,
+          "score": 1.2684011986405734,
+          "endingValue": 218.09822270015266
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 77.73777283135814,
+        "score": 72.60779994730808,
         "decision": "Activate",
         "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.13606588074687942
+        "stabilityPenalty": 0.023914269651729936
       }
     },
     {
       "name": "S8 Trend-Guarded Reversion+",
       "group": "Custom Tactical",
-      "note": "Upgraded guarded reversion: buys pullbacks only above 200-day trend, with drawdown and volatility filters.",
+      "note": "Version 3.5 guarded reversion: pullback entries require trend, drawdown, volatility and JP Morgan crowding controls.",
       "fullSample": {
-        "cagr": 0.11867323219871606,
-        "volatility": 0.10502574220203507,
-        "sharpe": 1.1230435433371735,
-        "maxDrawdown": -0.16979871186495132,
-        "winRate": 0.6273291925465838,
-        "endingValue": 453.79295253933554,
-        "annualTurnover": 12.98267925975097,
-        "totalCost": 21.368734673403832
+        "cagr": 0.12193904703655889,
+        "volatility": 0.10232243467495937,
+        "sharpe": 1.1786023707845978,
+        "maxDrawdown": -0.12179030095652688,
+        "winRate": 0.6583850931677019,
+        "endingValue": 472.70639521453126,
+        "annualTurnover": 37.48274059745783,
+        "totalCost": 57.73068367930424
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "reversion": "20D z-score",
           "guard": "200D trend + drawdown filter",
-          "targetVol": 0.09
+          "targetVol": 0.09,
+          "jpMorganOverlay": "crowding and low-vol controls"
         },
         "candidateGrid": {
           "zWindow": [
@@ -2303,66 +2359,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.1341425440436781,
-          "volatility": 0.08985922776769474,
-          "sharpe": 1.4512906913891428,
-          "maxDrawdown": -0.08030797923372202,
-          "calmar": 1.6703513813151767,
-          "score": 1.146155427596295,
-          "endingValue": 210.51894699963077
+          "cagr": 0.1161854977244885,
+          "volatility": 0.1040598874580756,
+          "sharpe": 1.1101613119699443,
+          "maxDrawdown": -0.09200920925192568,
+          "calmar": 1.262759441898549,
+          "score": 0.8691995020308471,
+          "endingValue": 191.55846951161456
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.10318502021358711,
-          "volatility": 0.09766322974122234,
-          "sharpe": 1.0560601626562645,
-          "maxDrawdown": -0.08203429463731693,
-          "calmar": 1.2578278471190614,
-          "score": 0.8443719978673058,
-          "endingValue": 133.15410184036057
+          "cagr": 0.1063744325553615,
+          "volatility": 0.09203655220824879,
+          "sharpe": 1.1471478654512495,
+          "maxDrawdown": -0.05741559358693038,
+          "calmar": 1.8527097938002632,
+          "score": 1.066287918234448,
+          "endingValue": 134.27968704655106
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.11631841977587176,
-          "volatility": 0.09789418317465984,
-          "sharpe": 1.1708360123606287,
-          "maxDrawdown": -0.09006149644893802,
-          "calmar": 1.291544382030345,
-          "score": 0.9053333705264927,
-          "endingValue": 162.178337006184
+          "cagr": 0.13678213714777776,
+          "volatility": 0.09016506948712134,
+          "sharpe": 1.4701195092562813,
+          "maxDrawdown": -0.07751590933080477,
+          "calmar": 1.7645685682928658,
+          "score": 1.1831727587201057,
+          "endingValue": 175.963229180413
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 41.42647355187151,
-        "decision": "Watch",
-        "reason": "Research candidate only; evidence is not strong enough for approval.",
-        "stabilityPenalty": 0.16583215951076988
+        "score": 2.1698350572250114,
+        "decision": "Reject",
+        "reason": "Weak out-of-sample or risk-adjusted evidence under the current settings.",
+        "stabilityPenalty": 0.15936751556236062
       }
     },
     {
       "name": "S9 Sector-Breadth Rotation+",
       "group": "Custom Macro",
-      "note": "Upgraded sector-breadth rotation: sector ETF breadth and leading-sector momentum decide risk budget, then stocks receive allocation.",
+      "note": "Version 3.5 sector-breadth rotation: ETF breadth/factor leadership plus JP Morgan regime, liquidity and quality scoring.",
       "fullSample": {
-        "cagr": 0.16620129126476657,
-        "volatility": 0.13092666843086626,
-        "sharpe": 1.242974278909394,
-        "maxDrawdown": -0.18546598469112974,
-        "winRate": 0.6583850931677019,
-        "endingValue": 798.065732190517,
-        "annualTurnover": 7.362739914903672,
-        "totalCost": 15.174108180035343
+        "cagr": 0.15449187623623484,
+        "volatility": 0.12282584805455096,
+        "sharpe": 1.2342728468902335,
+        "maxDrawdown": -0.12415864480813166,
+        "winRate": 0.6956521739130435,
+        "endingValue": 698.2392192946262,
+        "annualTurnover": 15.1314611414104,
+        "totalCost": 29.94487044726588
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "breadth": "sector ETFs above 100D MA",
           "riskBudget": ".08 to .12",
-          "leaderFactor": "sector momentum"
+          "leaderFactor": "sector momentum",
+          "jpMorganOverlay": "ETF breadth + liquidity + quality score"
         },
         "candidateGrid": {
           "breadthThreshold": [
@@ -2388,66 +2446,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.18598049754964086,
-          "volatility": 0.12251206331557263,
-          "sharpe": 1.4605014636900464,
-          "maxDrawdown": -0.1379986168054117,
-          "calmar": 1.3476982730333245,
-          "score": 1.047735278889977,
-          "endingValue": 274.20581898968965
+          "cagr": 0.17809738120460294,
+          "volatility": 0.11719161743969765,
+          "sharpe": 1.463997792618503,
+          "maxDrawdown": -0.07429931192502348,
+          "calmar": 2.3970259830174956,
+          "score": 1.3704768703910726,
+          "endingValue": 263.60176509860355
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.11057890954584892,
-          "volatility": 0.11232608694584609,
-          "sharpe": 0.9916374856475086,
-          "maxDrawdown": -0.07356706048301032,
-          "calmar": 1.5031035468840865,
-          "score": 0.8898112265583038,
-          "endingValue": 135.7730296480345
+          "cagr": 0.13376320453332258,
+          "volatility": 0.10320983377022643,
+          "sharpe": 1.2721710008346778,
+          "maxDrawdown": -0.05978849689329013,
+          "calmar": 2.2372732462577494,
+          "score": 1.237680074563601,
+          "endingValue": 144.20386362746206
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.18725449865772004,
-          "volatility": 0.11027611267760254,
-          "sharpe": 1.612701573537932,
-          "maxDrawdown": -0.06609002602018155,
-          "calmar": 2.833324632078964,
-          "score": 1.5691040951137403,
-          "endingValue": 212.60047780587917
+          "cagr": 0.15762311650975303,
+          "volatility": 0.11069138885442605,
+          "sharpe": 1.3811084079465825,
+          "maxDrawdown": -0.07184542425965978,
+          "calmar": 2.193920046182485,
+          "score": 1.2724902550047417,
+          "endingValue": 190.6339941771836
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 61.2184858193875,
+        "score": 57.7056575687328,
         "decision": "Tune",
         "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.23890782670718763
+        "stabilityPenalty": 0.07010047649624498
       }
     },
     {
       "name": "S10 Defensive Growth Stabilizer+",
       "group": "Custom Risk",
-      "note": "Upgraded defensive stabilizer: combines quality proxy with volatility stress hedge, designed for smoother downside behavior.",
+      "note": "Version 3.5 defensive stabilizer: quality, low-volatility, crowding control and volatility stress hedge.",
       "fullSample": {
-        "cagr": 0.14207585508141096,
-        "volatility": 0.12646835063258852,
-        "sharpe": 1.1164105418693664,
-        "maxDrawdown": -0.2192075492020954,
+        "cagr": 0.1138143849081612,
+        "volatility": 0.10368905448695166,
+        "sharpe": 1.094188672654973,
+        "maxDrawdown": -0.12830900075469132,
         "winRate": 0.6583850931677019,
-        "endingValue": 601.2489599179669,
-        "annualTurnover": 4.6391018944732005,
-        "totalCost": 9.871101835256244
+        "endingValue": 429.4325667670419,
+        "annualTurnover": 8.866768397312473,
+        "totalCost": 15.107556155498472
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "qualityProxy": true,
           "stress": "SPY vol/drawdown",
-          "hedgeSleeve": 0.34
+          "hedgeSleeve": 0.34,
+          "jpMorganOverlay": "quality + low-vol + crowding control"
         },
         "candidateGrid": {
           "hedgeSleeve": [
@@ -2473,65 +2533,67 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.16367803149058657,
-          "volatility": 0.1021306268085266,
-          "sharpe": 1.5424400142422439,
-          "maxDrawdown": -0.06936614412931907,
-          "calmar": 2.359624187636005,
-          "score": 1.3950486482868794,
-          "endingValue": 245.08652731151147
+          "cagr": 0.13635073642295237,
+          "volatility": 0.10123859673001837,
+          "sharpe": 1.3179901959925355,
+          "maxDrawdown": -0.08089166721733665,
+          "calmar": 1.6855968125444911,
+          "score": 1.0906854652382545,
+          "endingValue": 212.95452346356214
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.2026972098489359,
-          "volatility": 0.12167408513077607,
-          "sharpe": 1.5864552229075495,
-          "maxDrawdown": -0.08987442273789226,
-          "calmar": 2.255338100363409,
-          "score": 1.3815188381436307,
-          "endingValue": 171.28551523289158
+          "cagr": 0.14997652144846496,
+          "volatility": 0.0998950582913947,
+          "sharpe": 1.4547832591909309,
+          "maxDrawdown": -0.06681531673287155,
+          "calmar": 2.2446428271540326,
+          "score": 1.3213637831088416,
+          "endingValue": 150.29951608547657
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.08576537385620298,
-          "volatility": 0.10620301549322526,
-          "sharpe": 0.8252937878539676,
-          "maxDrawdown": -0.1027060318172276,
-          "calmar": 0.8350568349172357,
-          "score": 0.6116286518277333,
-          "endingValue": 143.55981209651446
+          "cagr": 0.07541207822751983,
+          "volatility": 0.10175903927480133,
+          "sharpe": 0.7647073248703825,
+          "maxDrawdown": -0.07285435641881377,
+          "calmar": 1.0351073282976055,
+          "score": 0.6473650590390724,
+          "endingValue": 137.7781346827678
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 71.43725022703141,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.32420131025292265
+        "score": 60.54386935774274,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.30986918566938865
       }
     },
     {
       "name": "S11 Tail-Risk Shock Absorber+",
       "group": "Custom Risk",
-      "note": "Upgraded tail-risk absorber: reacts to drawdown, volatility, credit stress and combined regime score before moving into hedges.",
+      "note": "Version 3.5 tail-risk absorber: JP Morgan regime, low-vol and quality score before shifting into hedges under shock.",
       "fullSample": {
-        "cagr": 0.182382293038577,
-        "volatility": 0.12889023489567666,
-        "sharpe": 1.3677710760104407,
-        "maxDrawdown": -0.19801557373281164,
+        "cagr": 0.15198093034988336,
+        "volatility": 0.12238203855678033,
+        "sharpe": 1.2205148695900825,
+        "maxDrawdown": -0.16944957525077742,
         "winRate": 0.7142857142857143,
-        "endingValue": 960.6466148218071,
-        "annualTurnover": 5.5143068578389025,
-        "totalCost": 17.03826570912619
+        "endingValue": 677.5622564841887,
+        "annualTurnover": 11.51196183653327,
+        "totalCost": 24.322208578338735
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "shockRules": "drawdown + vol + credit + regime",
-          "hedgeSleeve": 0.65
+          "hedgeSleeve": 0.65,
+          "jpMorganOverlay": "regime + low-vol + quality under shock"
         },
         "candidateGrid": {
           "hedgeSleeve": [
@@ -2557,66 +2619,68 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.23566509071656205,
-          "volatility": 0.11399116793508363,
-          "sharpe": 1.9271017824218721,
-          "maxDrawdown": -0.1058008225333974,
-          "calmar": 2.227441007296246,
-          "score": 1.5248480220253766,
-          "endingValue": 349.5255518762484
+          "cagr": 0.1689427306657023,
+          "volatility": 0.11362423978273903,
+          "sharpe": 1.4377942146923055,
+          "maxDrawdown": -0.11548218109906383,
+          "calmar": 1.4629333206027564,
+          "score": 1.074339174682458,
+          "endingValue": 251.71712501447433
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.23231166144487414,
-          "volatility": 0.1353876203645905,
-          "sharpe": 1.621520365290831,
-          "maxDrawdown": -0.08943047661120151,
-          "calmar": 2.5976788925641956,
-          "score": 1.5000447844890126,
-          "endingValue": 183.8755605525384
+          "cagr": 0.19614703751701046,
+          "volatility": 0.12363494675066798,
+          "sharpe": 1.5191805104896245,
+          "maxDrawdown": -0.085124427889254,
+          "calmar": 2.304239128305164,
+          "score": 1.366390525422955,
+          "endingValue": 168.57963484195116
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.09823423429336686,
-          "volatility": 0.11741208100913605,
-          "sharpe": 0.853976953549874,
-          "maxDrawdown": -0.13300001068578393,
-          "calmar": 0.7386032060211473,
-          "score": 0.592570589835209,
-          "endingValue": 150.94680521276356
+          "cagr": 0.11946889393999927,
+          "volatility": 0.11695514203870969,
+          "sharpe": 1.0242452658939756,
+          "maxDrawdown": -0.10262546506632408,
+          "calmar": 1.1641252379493698,
+          "score": 0.7998853945304676,
+          "endingValue": 164.45310536972508
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 73.91203114104503,
-        "decision": "Activate",
-        "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-        "stabilityPenalty": 0.37674540964544084
+        "score": 62.138457763865915,
+        "decision": "Tune",
+        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+        "stabilityPenalty": 0.19998525715039844
       }
     },
     {
       "name": "S12 Adaptive Volatility Compounder+",
       "group": "Custom Tactical",
-      "note": "Upgraded adaptive volatility compounder: target volatility changes with market stress and stock selection includes trend confirmation.",
+      "note": "Version 3.5 adaptive volatility compounder: dynamic target volatility plus JP Morgan liquidity, regime and low-vol scoring.",
       "fullSample": {
-        "cagr": 0.17559409544393545,
-        "volatility": 0.15019788741178336,
-        "sharpe": 1.1551267965434973,
-        "maxDrawdown": -0.23228289773812283,
-        "winRate": 0.6459627329192547,
-        "endingValue": 886.9487189393051,
-        "annualTurnover": 7.300124706502384,
-        "totalCost": 16.306914057679407
+        "cagr": 0.17052480699457373,
+        "volatility": 0.14139960263465193,
+        "sharpe": 1.1873322147426817,
+        "maxDrawdown": -0.18352899445151893,
+        "winRate": 0.6645962732919255,
+        "endingValue": 838.4435661979785,
+        "annualTurnover": 14.194434404395974,
+        "totalCost": 32.68961265786908
       },
       "parameters": {
         "current": {
+          "version": "3.5",
           "targetVol": ".07/.095/.13 by stress",
           "momentumBlend": "6M + 12-1M",
-          "maxGross": 1.8
+          "maxGross": 1.8,
+          "jpMorganOverlay": "regime + liquidity + low-vol scoring"
         },
         "candidateGrid": {
           "lowStressVol": [
@@ -2642,277 +2706,297 @@
           "start": "2013-01-31",
           "end": "2018-12-31",
           "observations": 72,
-          "cagr": 0.19538354586966844,
-          "volatility": 0.13909610145168824,
-          "sharpe": 1.3595821036151239,
-          "maxDrawdown": -0.18615900861587142,
-          "calmar": 1.0495519251116734,
-          "score": 0.9080616232987206,
-          "endingValue": 287.31561923853394
+          "cagr": 0.1968972466841863,
+          "volatility": 0.13556839780093055,
+          "sharpe": 1.4014046603022838,
+          "maxDrawdown": -0.14819683377699722,
+          "calmar": 1.3286197934597725,
+          "score": 1.0143983517962598,
+          "endingValue": 289.4738943610076
         },
         "validation": {
           "start": "2019-01-31",
           "end": "2021-12-31",
           "observations": 36,
-          "cagr": 0.1418137780874109,
-          "volatility": 0.12013833455980487,
-          "sharpe": 1.1673486496972105,
-          "maxDrawdown": -0.06761679564746248,
-          "calmar": 2.097315862567541,
-          "score": 1.1477399715692607,
-          "endingValue": 147.2098783851395
+          "cagr": 0.10397271666615104,
+          "volatility": 0.10574159836789648,
+          "sharpe": 0.9901808729302333,
+          "maxDrawdown": -0.06708910171426907,
+          "calmar": 1.5497705888054432,
+          "score": 0.9038036592888109,
+          "endingValue": 133.43151143079527
         },
         "test": {
           "start": "2022-01-31",
-          "end": "2026-06-24",
+          "end": "2026-06-29",
           "observations": 54,
-          "cagr": 0.19452658601779738,
-          "volatility": 0.13641829294609337,
-          "sharpe": 1.3713676194732451,
-          "maxDrawdown": -0.11075242947336994,
-          "calmar": 1.7564091997148528,
-          "score": 1.132962945730079,
-          "endingValue": 218.38246913664833
+          "cagr": 0.20091054032657674,
+          "volatility": 0.13565983516631216,
+          "sharpe": 1.422493209858341,
+          "maxDrawdown": -0.106920076437516,
+          "calmar": 1.8790721726053823,
+          "score": 1.1931515885741166,
+          "endingValue": 224.1187467346756
         }
       },
       "selectedStatus": "baseline_current_parameters_not_final",
       "approval": {
-        "score": 68.06176201151436,
-        "decision": "Tune",
-        "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-        "stabilityPenalty": 0.08814607876623572
+        "score": 44.00317520275463,
+        "decision": "Watch",
+        "reason": "Research candidate only; evidence is not strong enough for approval.",
+        "stabilityPenalty": 0.1917129447659979
       }
     }
   ],
   "approvalScorecard": [
     {
       "rank": 1,
-      "name": "V3 Boosted Trees + Attribution",
-      "group": "V3",
-      "score": 100,
-      "decision": "Activate",
-      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 2.0821787613233234,
-      "testSharpe": 1.155043565901253,
-      "maxDrawdown": -0.15501552981119027,
-      "annualTurnover": 5.635434998637408
-    },
-    {
-      "rank": 2,
       "name": "S2 Quality Growth Barbell+",
       "group": "Custom AI",
       "score": 100,
       "decision": "Activate",
       "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.9494482031717493,
-      "testSharpe": 1.3897382734969213,
-      "maxDrawdown": -0.2763510844197141,
-      "annualTurnover": 4.062568731666302
+      "validationSharpe": 2.035405084352018,
+      "testSharpe": 1.4312351810040485,
+      "maxDrawdown": -0.2729832112192695,
+      "annualTurnover": 9.039981031229837
+    },
+    {
+      "rank": 2,
+      "name": "S1 AI Capex Momentum+",
+      "group": "Custom AI",
+      "score": 89.27172892036118,
+      "decision": "Activate",
+      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
+      "validationSharpe": 1.7482898950341614,
+      "testSharpe": 1.3002622804767971,
+      "maxDrawdown": -0.18194587951398145,
+      "annualTurnover": 6.691899215013612
     },
     {
       "rank": 3,
       "name": "S6 Credit-Liquidity Accelerator+",
       "group": "Custom Macro",
-      "score": 94.34742298067611,
+      "score": 77.2861380578871,
       "decision": "Activate",
       "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 2.2348577132757725,
-      "testSharpe": 0.663126132075152,
-      "maxDrawdown": -0.18472397825874753,
-      "annualTurnover": 6.2185370121896515
+      "validationSharpe": 2.1839643116068537,
+      "testSharpe": 0.8842836473034383,
+      "maxDrawdown": -0.21216348407005858,
+      "annualTurnover": 13.417237844503754
     },
     {
       "rank": 4,
-      "name": "S1 AI Capex Momentum+",
+      "name": "S7 Revision-Proxy Growth Rank+",
       "group": "Custom AI",
-      "score": 82.17998833922366,
+      "score": 72.60779994730808,
       "decision": "Activate",
       "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.3787918758382611,
-      "testSharpe": 1.2365431879671285,
-      "maxDrawdown": -0.18764778566737328,
-      "annualTurnover": 3.3382956294262196
+      "validationSharpe": 1.5075477907079884,
+      "testSharpe": 1.4749644146371166,
+      "maxDrawdown": -0.14845629539352123,
+      "annualTurnover": 13.009896638757771
     },
     {
       "rank": 5,
-      "name": "S4 Low-Vol Alpha Shield+",
-      "group": "Custom Risk",
-      "score": 81.31291619265085,
+      "name": "S5 Regime-Switch Equity Hedge+",
+      "group": "Custom Macro",
+      "score": 72.25154447931203,
       "decision": "Activate",
       "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.3064700356443653,
-      "testSharpe": 1.421040768180455,
-      "maxDrawdown": -0.15302127991876568,
-      "annualTurnover": 6.54607022107716
+      "validationSharpe": 1.573462390698478,
+      "testSharpe": 1.3260741091425352,
+      "maxDrawdown": -0.18281310896305458,
+      "annualTurnover": 13.642263548983117
     },
     {
       "rank": 6,
-      "name": "S7 Revision-Proxy Growth Rank+",
-      "group": "Custom AI",
-      "score": 77.73777283135814,
+      "name": "S3 Crowding-Aware Momentum+",
+      "group": "Custom Risk",
+      "score": 71.336867531231,
       "decision": "Activate",
       "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.5027704535279052,
-      "testSharpe": 1.1808767009618644,
-      "maxDrawdown": -0.19147381820008702,
-      "annualTurnover": 7.280702330012627
+      "validationSharpe": 1.2349976453665963,
+      "testSharpe": 1.5515407000186463,
+      "maxDrawdown": -0.13533305032154574,
+      "annualTurnover": 10.877400570822726
     },
     {
       "rank": 7,
-      "name": "S11 Tail-Risk Shock Absorber+",
+      "name": "S4 Low-Vol Alpha Shield+",
       "group": "Custom Risk",
-      "score": 73.91203114104503,
-      "decision": "Activate",
-      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.621520365290831,
-      "testSharpe": 0.853976953549874,
-      "maxDrawdown": -0.19801557373281164,
-      "annualTurnover": 5.5143068578389025
+      "score": 62.551738400398115,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 1.3217106746532532,
+      "testSharpe": 1.0766679682614915,
+      "maxDrawdown": -0.12560817092889576,
+      "annualTurnover": 11.593257231455201
     },
     {
       "rank": 8,
-      "name": "S5 Regime-Switch Equity Hedge+",
-      "group": "Custom Macro",
-      "score": 73.4362631401788,
-      "decision": "Activate",
-      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.7383468294122217,
-      "testSharpe": 1.05995958144619,
-      "maxDrawdown": -0.26480820163833096,
-      "annualTurnover": 8.703948142403947
+      "name": "S11 Tail-Risk Shock Absorber+",
+      "group": "Custom Risk",
+      "score": 62.138457763865915,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 1.5191805104896245,
+      "testSharpe": 1.0242452658939756,
+      "maxDrawdown": -0.16944957525077742,
+      "annualTurnover": 11.51196183653327
     },
     {
       "rank": 9,
       "name": "S10 Defensive Growth Stabilizer+",
       "group": "Custom Risk",
-      "score": 71.43725022703141,
-      "decision": "Activate",
-      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.5864552229075495,
-      "testSharpe": 0.8252937878539676,
-      "maxDrawdown": -0.2192075492020954,
-      "annualTurnover": 4.6391018944732005
+      "score": 60.54386935774274,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 1.4547832591909309,
+      "testSharpe": 0.7647073248703825,
+      "maxDrawdown": -0.12830900075469132,
+      "annualTurnover": 8.866768397312473
     },
     {
       "rank": 10,
-      "name": "S3 Crowding-Aware Momentum+",
-      "group": "Custom Risk",
-      "score": 70.83124567287497,
-      "decision": "Activate",
-      "reason": "Strong validation/test risk-adjusted performance with acceptable drawdown.",
-      "validationSharpe": 1.1367867340595215,
-      "testSharpe": 1.2952662385094833,
-      "maxDrawdown": -0.16480801383402077,
-      "annualTurnover": 4.9512896692308805
+      "name": "S9 Sector-Breadth Rotation+",
+      "group": "Custom Macro",
+      "score": 57.7056575687328,
+      "decision": "Tune",
+      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
+      "validationSharpe": 1.2721710008346778,
+      "testSharpe": 1.3811084079465825,
+      "maxDrawdown": -0.12415864480813166,
+      "annualTurnover": 15.1314611414104
     },
     {
       "rank": 11,
-      "name": "S12 Adaptive Volatility Compounder+",
-      "group": "Custom Tactical",
-      "score": 68.06176201151436,
+      "name": "V3 Boosted Trees + Attribution",
+      "group": "V3",
+      "score": 52.085161813502715,
       "decision": "Tune",
       "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-      "validationSharpe": 1.1673486496972105,
-      "testSharpe": 1.3713676194732451,
-      "maxDrawdown": -0.23228289773812283,
-      "annualTurnover": 7.300124706502384
+      "validationSharpe": 1.8316061672851398,
+      "testSharpe": 0.7747318771111662,
+      "maxDrawdown": -0.14466799878611747,
+      "annualTurnover": 18.94512867858709
     },
     {
       "rank": 12,
       "name": "V1 Momentum-Vol Research Model",
       "group": "Core",
-      "score": 63.7316445215164,
-      "decision": "Tune",
-      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-      "validationSharpe": 0.8469970916211905,
-      "testSharpe": 1.3830350104020568,
-      "maxDrawdown": -0.1388468905424649,
-      "annualTurnover": 3.1138055551742583
+      "score": 46.74542028785625,
+      "decision": "Watch",
+      "reason": "Research candidate only; evidence is not strong enough for approval.",
+      "validationSharpe": 0.7886272524863704,
+      "testSharpe": 1.2493261047045867,
+      "maxDrawdown": -0.13604116143220046,
+      "annualTurnover": 7.913962075975761
     },
     {
       "rank": 13,
-      "name": "S9 Sector-Breadth Rotation+",
-      "group": "Custom Macro",
-      "score": 61.2184858193875,
-      "decision": "Tune",
-      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-      "validationSharpe": 0.9916374856475086,
-      "testSharpe": 1.612701573537932,
-      "maxDrawdown": -0.18546598469112974,
-      "annualTurnover": 7.362739914903672
+      "name": "S12 Adaptive Volatility Compounder+",
+      "group": "Custom Tactical",
+      "score": 44.00317520275463,
+      "decision": "Watch",
+      "reason": "Research candidate only; evidence is not strong enough for approval.",
+      "validationSharpe": 0.9901808729302333,
+      "testSharpe": 1.422493209858341,
+      "maxDrawdown": -0.18352899445151893,
+      "annualTurnover": 14.194434404395974
     },
     {
       "rank": 14,
       "name": "V2 HMM-GARCH-MVO",
       "group": "V2",
-      "score": 59.99629519814747,
-      "decision": "Tune",
-      "reason": "Useful signal, but parameters or turnover/drawdown controls need more work.",
-      "validationSharpe": 1.571318032643312,
-      "testSharpe": 1.0833753383197462,
-      "maxDrawdown": -0.3245653083128771,
-      "annualTurnover": 9.936277644137618
+      "score": 16.5844823178096,
+      "decision": "Reject",
+      "reason": "Weak out-of-sample or risk-adjusted evidence under the current settings.",
+      "validationSharpe": 1.442017521405142,
+      "testSharpe": 1.0919603129308815,
+      "maxDrawdown": -0.3225899933228652,
+      "annualTurnover": 28.324970760180605
     },
     {
       "rank": 15,
       "name": "S8 Trend-Guarded Reversion+",
       "group": "Custom Tactical",
-      "score": 41.42647355187151,
-      "decision": "Watch",
-      "reason": "Research candidate only; evidence is not strong enough for approval.",
-      "validationSharpe": 1.0560601626562645,
-      "testSharpe": 1.1708360123606287,
-      "maxDrawdown": -0.16979871186495132,
-      "annualTurnover": 12.98267925975097
+      "score": 2.1698350572250114,
+      "decision": "Reject",
+      "reason": "Weak out-of-sample or risk-adjusted evidence under the current settings.",
+      "validationSharpe": 1.1471478654512495,
+      "testSharpe": 1.4701195092562813,
+      "maxDrawdown": -0.12179030095652688,
+      "annualTurnover": 37.48274059745783
     }
   ],
   "paperPortfolio": {
-    "selectedStrategy": "V3 Boosted Trees + Attribution",
+    "selectedStrategy": "S2 Quality Growth Barbell+",
     "capital": 1000000,
-    "latestRebalanceDate": "2026-06-01",
+    "latestRebalanceDate": "2026-06-29",
     "mode": "Paper portfolio target allocation; no live capital or brokerage execution.",
     "holdings": [
       {
-        "symbol": "CAT",
-        "weight": 0.0813537981482999,
-        "dollarValue": 81353.7981482999
+        "symbol": "UNH",
+        "weight": 0.10400000000000001,
+        "dollarValue": 104000.00000000001
       },
       {
-        "symbol": "AVGO",
-        "weight": 0.07880584469409722,
-        "dollarValue": 78805.84469409722
+        "symbol": "LLY",
+        "weight": 0.10400000000000001,
+        "dollarValue": 104000.00000000001
       },
       {
-        "symbol": "CRM",
-        "weight": 0.07461441119218933,
-        "dollarValue": 74614.41119218932
+        "symbol": "V",
+        "weight": 0.10400000000000001,
+        "dollarValue": 104000.00000000001
       },
       {
-        "symbol": "ORCL",
-        "weight": 0.05683639779820357,
-        "dollarValue": 56836.39779820357
+        "symbol": "WMT",
+        "weight": 0.10400000000000001,
+        "dollarValue": 104000.00000000001
+      },
+      {
+        "symbol": "AAPL",
+        "weight": 0.1,
+        "dollarValue": 100000
       },
       {
         "symbol": "AMD",
-        "weight": 0.046025489712876816,
-        "dollarValue": 46025.48971287681
+        "weight": 0.1,
+        "dollarValue": 100000
+      },
+      {
+        "symbol": "GOOG",
+        "weight": 0.1,
+        "dollarValue": 100000
+      },
+      {
+        "symbol": "AVGO",
+        "weight": 0.1,
+        "dollarValue": 100000
+      },
+      {
+        "symbol": "USMV",
+        "weight": 0.08,
+        "dollarValue": 80000
       }
     ],
     "riskChecks": [
       {
         "name": "Max drawdown limit",
-        "status": "OK",
-        "value": -0.15501552981119027
+        "status": "Watch",
+        "value": -0.2729832112192695
       },
       {
         "name": "Turnover limit",
         "status": "Watch",
-        "value": 5.635434998637408
+        "value": 9.039981031229837
       },
       {
         "name": "Top holding concentration",
         "status": "OK",
-        "value": 0.0813537981482999
+        "value": 0.10400000000000001
       }
     ]
   },
