@@ -1,53 +1,56 @@
-import { getStore } from "@netlify/blobs";
+const { json } = require("./_riskdesk-common");
 
-const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Cache-Control": "no-store"
-};
-
-const store = getStore("riskdesk-forward-ledger");
-const key = "forecast-ledger-v35.json";
-
-async function readLedger() {
-  const value = await store.get(key, { type: "json" });
-  return Array.isArray(value) ? value : [];
-}
-
-async function writeLedger(rows) {
-  const limited = rows.slice(-1000);
-  await store.setJSON(key, limited);
-  return limited;
-}
-
-export async function handler(event) {
-  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers };
+async function blobStore() {
   try {
-    if (event.httpMethod === "GET") {
-      const rows = await readLedger();
-      return { statusCode: 200, headers, body: JSON.stringify({ rows, count: rows.length }) };
-    }
-    if (event.httpMethod === "DELETE") {
-      await writeLedger([]);
-      return { statusCode: 200, headers, body: JSON.stringify({ rows: [], count: 0 }) };
-    }
-    if (event.httpMethod === "POST") {
-      const payload = JSON.parse(event.body || "{}");
-      const incoming = Array.isArray(payload.rows) ? payload.rows : [];
-      const stamped = incoming.map(row => ({
-        ...row,
-        serverRecordedAt: new Date().toISOString()
-      }));
-      const rows = await writeLedger([...(await readLedger()), ...stamped]);
-      return { statusCode: 200, headers, body: JSON.stringify({ rows, count: rows.length }) };
-    }
-    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: error.message || "Ledger operation failed" })
-    };
+    const { getStore } = require("@netlify/blobs");
+    return getStore("riskdesk-forward-ledger");
+  } catch {
+    return null;
   }
 }
+
+exports.handler = async event => {
+  if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
+
+  const store = await blobStore();
+  if (!store) {
+    return json(200, {
+      source: "Browser localStorage fallback",
+      rows: [],
+      note: "Install @netlify/blobs during deploy to persist this ledger on Netlify."
+    });
+  }
+
+  const key = "forward-ledger.json";
+  let existing = null;
+  try {
+    existing = await store.get(key, { type: "json" });
+  } catch (error) {
+    return json(200, {
+      source: "Browser localStorage fallback",
+      rows: [],
+      note: `Netlify Blobs is not available yet: ${error.message}`
+    });
+  }
+  const rows = Array.isArray(existing) ? existing : [];
+
+  if (event.httpMethod === "GET") {
+    return json(200, { source: "Netlify Blobs prediction ledger", rows });
+  }
+
+  if (event.httpMethod === "DELETE") {
+    await store.setJSON(key, []);
+    return json(200, { ok: true, rows: [] });
+  }
+
+  if (event.httpMethod === "POST") {
+    const payload = event.body ? JSON.parse(event.body) : {};
+    const incoming = Array.isArray(payload.rows) ? payload.rows : [];
+    const savedAt = new Date().toISOString();
+    const nextRows = [...rows, ...incoming.map(row => ({ ...row, serverRecordedAt: savedAt }))].slice(-1000);
+    await store.setJSON(key, nextRows);
+    return json(200, { ok: true, saved: incoming.length, rows: nextRows });
+  }
+
+  return json(405, { error: "Method not allowed" });
+};
