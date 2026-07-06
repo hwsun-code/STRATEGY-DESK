@@ -1,6 +1,10 @@
 [build]
-  publish = "."
+  publish = "outputs"
   functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["outputs/index.html"]
 
 [[redirects]]
   from = "/api/quotes"
@@ -8,11 +12,26 @@
   status = 200
 
 [[redirects]]
+  from = "/api/stocks"
+  to = "/.netlify/functions/stocks"
+  status = 200
+
+[[redirects]]
+  from = "/api/universe"
+  to = "/.netlify/functions/universe"
+  status = 200
+
+[[redirects]]
+  from = "/api/backtest"
+  to = "/.netlify/functions/backtest"
+  status = 200
+
+[[redirects]]
   from = "/api/ledger"
   to = "/.netlify/functions/ledger"
   status = 200
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Cache-Control = "no-store"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

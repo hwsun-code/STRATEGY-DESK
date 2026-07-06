@@ -1,11 +1,9 @@
 {
-  "name": "strategy-desk-live",
-  "version": "3.5.1",
+  "name": "riskdesk-realtime-api",
+  "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "build": "echo Static RiskDesk build ready",
-    "dev": "netlify dev"
+    "start": "node riskdesk-server.js"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0"
