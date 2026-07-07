@@ -6,6 +6,7 @@
     "start": "node riskdesk-server.js"
   },
   "dependencies": {
-    "@netlify/blobs": "^8.2.0"
+    "@netlify/blobs": "^8.2.0",
+    "@netlify/functions": "^2.8.2"
   }
 }

@@ -1205,6 +1205,8 @@
               <div class="live-stat"><span>Pending Checks</span><strong id="forwardPendingCount">--</strong></div>
               <div class="live-stat"><span>Data Mode</span><strong id="forwardDataMode">No-key</strong></div>
               <div class="live-stat"><span>Signal Formula</span><strong id="forwardFormulaTag">Momentum + Risk</strong></div>
+              <div class="live-stat"><span>Auto Ledger</span><strong id="forwardAutoLedger">Checking</strong></div>
+              <div class="live-stat"><span>Last Auto Run</span><strong id="forwardAutoRun">--</strong></div>
             </div>
           </div>
 
@@ -3926,6 +3928,26 @@
         const training = parseEmbeddedData("v123TrainingResults");
         setText("weeklyBacktestLast", training?.generatedAt?.slice(0, 10) || snapshot?.generatedAt?.slice(0, 10) || "Embedded");
       }
+
+      async function updateAutomationStatus() {
+        try {
+          const response = await fetch("/api/automation-status", { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          const latest = payload.latestRun;
+          const checked = Number(payload.checked || 0);
+          const hitRate = Number(payload.hitRate);
+          setText("forwardAutoLedger", `${Number(payload.ledgerRows || 0)} rows / ${Number(payload.pending || 0)} pending`);
+          setText("forwardAutoRun", latest?.ranAt ? new Date(latest.ranAt).toLocaleString() : "Waiting");
+          setText("weeklyBacktestMode", latest?.ranAt ? "Auto signal validation ready" : "Endpoint ready");
+          if (Number.isFinite(hitRate) && checked > 0) {
+            setText("forwardPendingCount", `${Number(payload.pending || 0)} pending / ${percent(hitRate, 1)} hit`);
+          }
+        } catch (error) {
+          setText("forwardAutoLedger", "Local only");
+          setText("forwardAutoRun", "No cloud status");
+        }
+      }
       function renderApprovalScoreboard() {
         const training = parseEmbeddedData("v123TrainingResults");
         const allBacktestData = parseEmbeddedData("allStrategyBacktests");
@@ -4030,6 +4052,8 @@
       window.setInterval(updateLiveRefreshTelemetry, 1000);
       updateWeeklyBacktestTelemetry();
       window.setInterval(updateWeeklyBacktestTelemetry, 60000);
+      updateAutomationStatus();
+      window.setInterval(updateAutomationStatus, 300000);
     })();
   </script>
 </body>

@@ -6,6 +6,9 @@
   node_bundler = "esbuild"
   included_files = ["outputs/index.html"]
 
+[functions."weekly-signal-automation"]
+  schedule = "30 22 * * 5"
+
 [[redirects]]
   from = "/api/quotes"
   to = "/.netlify/functions/quotes"
@@ -29,6 +32,16 @@
 [[redirects]]
   from = "/api/ledger"
   to = "/.netlify/functions/ledger"
+  status = 200
+
+[[redirects]]
+  from = "/api/run-weekly-automation"
+  to = "/.netlify/functions/run-weekly-automation"
+  status = 200
+
+[[redirects]]
+  from = "/api/automation-status"
+  to = "/.netlify/functions/automation-status"
   status = 200
 
 [[redirects]]
