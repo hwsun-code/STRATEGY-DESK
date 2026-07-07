@@ -1,10 +1,10 @@
 [build]
-  publish = "outputs"
+  publish = "."
   functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["outputs/index.html"]
+  included_files = ["index.html", "riskdesk.html"]
 
 [functions."weekly-signal-automation"]
   schedule = "30 22 * * 5"

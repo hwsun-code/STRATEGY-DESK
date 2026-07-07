@@ -17,6 +17,8 @@ function json(statusCode, payload) {
 
 function indexHtml() {
   const candidates = [
+    path.join(process.cwd(), "index.html"),
+    path.join(__dirname, "..", "..", "index.html"),
     path.join(process.cwd(), "outputs", "index.html"),
     path.join(__dirname, "..", "..", "outputs", "index.html")
   ];
