@@ -7,12 +7,16 @@ const {
 
 const LEDGER_KEY = "forward-ledger.json";
 const STATUS_KEY = "automation-status.json";
+let lastBlobError = null;
 
 async function blobStore() {
   try {
     const { getStore } = require("@netlify/blobs");
-    return getStore("riskdesk-forward-ledger");
-  } catch {
+    const store = getStore("riskdesk-forward-ledger");
+    lastBlobError = null;
+    return store;
+  } catch (error) {
+    lastBlobError = error?.message || String(error);
     return null;
   }
 }
@@ -222,6 +226,7 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
     ranAt: new Date().toISOString(),
     saved,
     storage: store ? "Netlify Blobs" : "No persistent store available",
+    storageError: store ? null : lastBlobError,
     generated: newRows.length,
     totalRows: mergedRows.length,
     checked: validation.checked,
@@ -229,10 +234,14 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
     hitRate: validation.checked ? validation.hit / validation.checked : null,
     models: selectedModels.length,
     symbols: [...wantedSymbols],
-    note: saved ? "Weekly automation generated forecasts and validated due rows." : "Automation ran, but persistent cloud storage is not available."
+    note: saved ? "Weekly automation generated forecasts and validated due rows." : "Automation generated forecasts, but persistent cloud storage is not available yet. Use returned rows as a temporary diagnostic only."
   };
   await writeJson(store, STATUS_KEY, status);
-  return { status, rows: mergedRows.slice(-100) };
+  return {
+    status,
+    rows: mergedRows.slice(-100),
+    generatedRows: newRows.slice(0, 100)
+  };
 }
 
 async function automationStatus() {
@@ -245,6 +254,7 @@ async function automationStatus() {
   return {
     source: "RiskDesk weekly automation",
     storage: store ? "Netlify Blobs" : "No persistent store available",
+    storageError: store ? null : lastBlobError,
     latestRun: status,
     ledgerRows: rows.length,
     pending,
