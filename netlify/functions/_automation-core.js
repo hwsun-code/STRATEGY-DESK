@@ -158,7 +158,7 @@ function forecastRow({ model, symbol, weight, history, horizonDays }) {
     targetWeight: weight,
     confidence: clamp(Math.abs(probabilityUp - 0.5) * 2 + Math.min(0.2, Math.abs(mom20) * 2), 0, 1),
     provider: history.provider,
-    automationVersion: "weekly-v1"
+    automationVersion: "daily-v1"
   };
 }
 
@@ -208,7 +208,7 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
   const validation = validateRows(existingRows, historiesBySymbol);
   const newRows = [];
   for (const model of selectedModels) {
-    for (const horizonDays of [5]) {
+    for (const horizonDays of [1]) {
       const weights = weightsFromModel(model, stockSymbols);
       const weightSum = weights.reduce((sum, [, weight]) => sum + weight, 0) || 1;
       for (const [symbol, rawWeight] of weights) {
@@ -241,7 +241,7 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
     hitRate: validation.checked ? validation.hit / validation.checked : null,
     models: selectedModels.length,
     symbols: [...wantedSymbols],
-    note: saved ? "Weekly automation generated forecasts and validated due rows." : "Automation generated forecasts, but persistent cloud storage is not available yet. Use returned rows as a temporary diagnostic only."
+    note: saved ? "Daily automation generated forecasts and validated due rows." : "Automation generated forecasts, but persistent cloud storage is not available yet. Use returned rows as a temporary diagnostic only."
   };
   await writeJson(store, STATUS_KEY, status);
   return {
@@ -259,7 +259,7 @@ async function automationStatus() {
   const checked = rows.filter(row => row.actualStatus === "Hit" || row.actualStatus === "Miss");
   const hits = checked.filter(row => row.actualStatus === "Hit").length;
   return {
-    source: "RiskDesk weekly automation",
+    source: "RiskDesk daily automation",
     storage: store ? "Netlify Blobs" : "No persistent store available",
     storageError: store ? null : lastBlobError,
     latestRun: status,

@@ -7,7 +7,7 @@
   included_files = ["index.html", "riskdesk.html"]
 
 [functions."weekly-signal-automation"]
-  schedule = "30 22 * * 5"
+  schedule = "30 22 * * *"
 
 [[redirects]]
   from = "/api/quotes"
