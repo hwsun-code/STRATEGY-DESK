@@ -3,7 +3,11 @@ const { json } = require("./_riskdesk-common");
 async function blobStore() {
   try {
     const { getStore } = require("@netlify/blobs");
-    return getStore("riskdesk-forward-ledger");
+    const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || process.env.NETLIFY_SITE_ID_OVERRIDE;
+    const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_API_TOKEN;
+    return siteID && token
+      ? getStore({ name: "riskdesk-forward-ledger", siteID, token })
+      : getStore("riskdesk-forward-ledger");
   } catch {
     return null;
   }
