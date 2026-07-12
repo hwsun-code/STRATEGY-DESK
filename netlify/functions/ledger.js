@@ -5,6 +5,7 @@ async function blobStore() {
     const { getStore } = require("@netlify/blobs");
     const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || process.env.NETLIFY_SITE_ID_OVERRIDE;
     const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_API_TOKEN;
+    if (!siteID || !token) return null;
     return siteID && token
       ? getStore({ name: "riskdesk-forward-ledger", siteID, token })
       : getStore("riskdesk-forward-ledger");
