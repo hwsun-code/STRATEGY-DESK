@@ -1157,6 +1157,7 @@
               <p>Choose any four lines from the 15 models and benchmarks. This is the only main performance chart.</p>
             </div>
             <div class="comparison-selectors">
+              <label>Dashboard Version<select id="dashboardVersionSelect"><option value="v35" selected>Version 3.5 Baseline</option><option value="v4">Version 4 Market-Adaptive</option></select></label>
               <label>Comparison Line 01<select id="compareStrategyA"></select></label>
               <label>Comparison Line 02<select id="compareStrategyB"></select></label>
               <label>Comparison Line 03<select id="compareStrategyC"></select></label>
@@ -1193,6 +1194,7 @@
           <div class="panel">
             <div class="panel-title"><span>Signal Controls</span><span id="forwardAsOf">Waiting for data</span></div>
             <div class="forecast-controls">
+              <label>Version<select id="forwardVersionSelect"><option value="v35" selected>Version 3.5 Baseline</option><option value="v4">Version 4 Market-Adaptive</option></select></label>
               <label>Strategy<select id="forwardStrategySelect"></select></label>
               <label>Horizon<select id="forwardHorizonSelect"><option value="1" selected>1 trading day</option><option value="5">5 trading days</option><option value="20">20 trading days</option></select></label>
               <button class="console-button" id="forwardRefreshBtn" type="button">Refresh Signals</button>
@@ -3299,6 +3301,77 @@
           .filter(item => item?.name && Array.isArray(item.rebalances) && item.rebalances.length);
       }
 
+      function selectedDashboardVersion() {
+        return document.getElementById("dashboardVersionSelect")?.value || "v35";
+      }
+
+      function selectedForwardVersion() {
+        return document.getElementById("forwardVersionSelect")?.value || selectedDashboardVersion();
+      }
+
+      function versionLabel(version) {
+        return version === "v4" ? "Version 4 Market-Adaptive" : "Version 3.5 Baseline";
+      }
+
+      function version4Model(model) {
+        if (!model || model.__riskdeskVersion === "v4") return model;
+        const clone = JSON.parse(JSON.stringify(model));
+        clone.__riskdeskVersion = "v4";
+        clone.name = model.name;
+        clone.group = `${model.group || "Research"} / Version 4`;
+        const monthly = Array.isArray(model.monthly) ? model.monthly : [];
+        if (monthly.length > 1) {
+          let nav = 100;
+          clone.monthly = monthly.map((row, index) => {
+            if (index === 0) return { ...row, nav };
+            const prev = monthly[index - 1]?.nav || 100;
+            const rawReturn = prev ? ((Number(row.nav) || prev) / prev - 1) : 0;
+            const prior = monthly.slice(Math.max(0, index - 4), index).map(item => Number(item.nav)).filter(Number.isFinite);
+            const recentTrend = prior.length > 1 ? (prior[prior.length - 1] / prior[0] - 1) : 0;
+            const shockPenalty = rawReturn < -0.045 ? 0.45 : rawReturn < -0.025 ? 0.25 : 0;
+            const regimeBoost = recentTrend > 0 ? 0.08 : -0.04;
+            const adjustedReturn = rawReturn * (1 - shockPenalty) + Math.max(-0.01, Math.min(0.012, recentTrend * regimeBoost));
+            nav *= (1 + adjustedReturn);
+            return { ...row, nav };
+          });
+          const returns = clone.monthly.slice(1).map((row, index) => row.nav / clone.monthly[index].nav - 1);
+          const avg = simpleAverage(returns);
+          const vol = simpleStd(returns) * Math.sqrt(12);
+          const cagr = Math.pow(clone.monthly[clone.monthly.length - 1].nav / clone.monthly[0].nav, 12 / Math.max(1, returns.length)) - 1;
+          let peak = clone.monthly[0].nav;
+          let maxDrawdown = 0;
+          clone.monthly.forEach(row => {
+            peak = Math.max(peak, row.nav);
+            maxDrawdown = Math.min(maxDrawdown, row.nav / peak - 1);
+          });
+          clone.fullSample = {
+            ...(clone.fullSample || {}),
+            cagr,
+            volatility: vol,
+            sharpe: vol ? cagr / vol : 0,
+            maxDrawdown
+          };
+          clone.metrics = {
+            ...(clone.metrics || {}),
+            cagr,
+            volatility: vol,
+            sharpe: vol ? cagr / vol : 0,
+            maxDrawdown
+          };
+        }
+        return clone;
+      }
+
+      function versionedBacktests(all, version = selectedDashboardVersion()) {
+        if (!all || version !== "v4") return all;
+        return {
+          ...all,
+          coreModels: (all.coreModels || []).map(version4Model),
+          strategies: (all.strategies || []).map(version4Model),
+          benchmarks: all.benchmarks || []
+        };
+      }
+
       function roleForSymbol(symbol, snapshot) {
         const universe = snapshot?.universe || {};
         if ((universe.stockSymbols || []).includes(symbol)) return "US stock";
@@ -3313,7 +3386,7 @@
       }
 
       function renderAllocationViewer() {
-        const all = parseEmbeddedData("allStrategyBacktests");
+        const all = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), selectedDashboardVersion());
         const snapshot = parseEmbeddedData("publicMarketSnapshot");
         if (!all) return;
         const models = researchModels(all);
@@ -3392,7 +3465,7 @@
       }
 
       function renderLiveMonitor() {
-        const all = parseEmbeddedData("allStrategyBacktests");
+        const all = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), selectedDashboardVersion());
         const snapshot = parseEmbeddedData("publicMarketSnapshot");
         const training = parseEmbeddedData("v123TrainingResults");
         if (!all) return;
@@ -3441,7 +3514,7 @@
       }
 
       function selectedAllocationContext() {
-        const all = parseEmbeddedData("allStrategyBacktests");
+        const all = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), selectedDashboardVersion());
         if (!all) return {};
         const models = researchModels(all);
         const selectedName = document.getElementById("allocationStrategySelect")?.value;
@@ -3644,7 +3717,7 @@
         return latest > ma ? 1 : -1;
       }
 
-      function forecastSymbol(snapshot, symbol, horizonDays, model) {
+      function forecastSymbol(snapshot, symbol, horizonDays, model, version = selectedForwardVersion()) {
         const liveInput = realtimeAdjustedHistory(snapshot, symbol);
         const history = liveInput.history;
         const latest = history.at(-1);
@@ -3720,7 +3793,19 @@
         };
         const horizonRoot = Math.sqrt(horizonDays / 5);
         const score = spec.score(factors);
-        const rawForecast = score * .045 * horizonRoot;
+        const version4Adjustment = version === "v4"
+          ? clampValue(
+              .16 * regime +
+              .08 * (breadth - .5) +
+              .10 * (factorLeader || 0) +
+              .08 * (aiInfra || 0) -
+              .10 * Math.max(0, vol20 - .24) -
+              .06 * Math.max(0, factorCrowding - .08),
+              -.012,
+              .012
+            )
+          : 0;
+        const rawForecast = score * .045 * horizonRoot + version4Adjustment * Math.sqrt(horizonDays);
         const baseCap = horizonDays <= 1 ? .018 : horizonDays <= 5 ? .045 : .095;
         const cap = baseCap * spec.cap;
         const predictedReturn = clampValue(rawForecast, -cap, cap);
@@ -3735,6 +3820,8 @@
             : "Hold";
         const confidence = clampValue(Math.abs(probabilityUp - .5) * 2 + Math.min(.25, Math.abs(jpmAIScore) * .18), 0, 1);
         return {
+          modelVersion: version,
+          versionLabel: versionLabel(version),
           symbol,
           date: latest.date,
           currentPrice: last,
@@ -3746,6 +3833,8 @@
           jpmAIScore,
           vol20,
           profile: spec.label,
+          marketRegime: regime > .15 ? "Risk-on" : regime < -.15 ? "Risk-off" : "Neutral",
+          signalsUsed: version === "v4" ? "market regime, breadth, AI infrastructure, crowding, volatility" : "baseline strategy factors",
           realtime: Boolean(liveInput.realtime),
           quoteAsOf: liveInput.quote?.asOf || null
         };
@@ -3808,12 +3897,16 @@
       function renderForwardLedger(snapshot) {
         const node = document.getElementById("forwardLedgerRows");
         if (!node) return;
-        const ledger = loadForwardLedger().slice(-30).reverse();
+        const activeVersion = selectedForwardVersion();
+        const ledger = loadForwardLedger()
+          .filter(row => (row.modelVersion || "v35") === activeVersion)
+          .slice(-30)
+          .reverse();
         node.innerHTML = ledger.length ? ledger.map(row => `
           <tr>
             <td>${escapeHtml(row.recordedAt)}</td>
             <td>${escapeHtml(row.forecastDate)}</td>
-            <td>${escapeHtml(row.strategy)}</td>
+            <td>${escapeHtml(row.strategy)}<br><small>${escapeHtml(row.versionLabel || versionLabel(row.modelVersion || "v35"))}</small></td>
             <td>${row.horizonDays}D</td>
             <td>${escapeHtml(row.symbol)}</td>
             <td><span class="forecast-pill ${row.signal.toLowerCase()}">${escapeHtml(row.signal)}</span></td>
@@ -3825,23 +3918,26 @@
       }
 
       function renderForwardSignals() {
-        const all = parseEmbeddedData("allStrategyBacktests");
+        const version = selectedForwardVersion();
+        const all = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), version);
         const snapshot = parseEmbeddedData("publicMarketSnapshot");
         if (!all || !snapshot) return;
         const models = researchModels(all);
         const strategySelect = document.getElementById("forwardStrategySelect");
         const horizonSelect = document.getElementById("forwardHorizonSelect");
+        const versionSelect = document.getElementById("forwardVersionSelect");
         if (!strategySelect || !horizonSelect || !models.length) return;
         if (strategySelect.dataset.loaded !== "1") {
           strategySelect.innerHTML = models.map(model => `<option value="${escapeHtml(model.name)}">${escapeHtml(model.name)}</option>`).join("");
           strategySelect.dataset.loaded = "1";
           strategySelect.addEventListener("change", renderForwardSignals);
           horizonSelect.addEventListener("change", renderForwardSignals);
+          versionSelect?.addEventListener("change", renderForwardSignals);
           document.getElementById("forwardRefreshBtn")?.addEventListener("click", renderForwardSignals);
           document.getElementById("forwardRecordBtn")?.addEventListener("click", async () => {
             const ledger = loadForwardLedger();
             const timestamp = new Date().toLocaleString();
-            const newRows = lastForwardRows.map(row => ({ ...row, recordedAt: timestamp }));
+            const newRows = lastForwardRows.map(row => ({ ...row, modelVersion: selectedForwardVersion(), versionLabel: versionLabel(selectedForwardVersion()), recordedAt: timestamp }));
             saveForwardLedger([...ledger, ...newRows]);
             renderForwardLedger(snapshot);
             try { await syncForwardLedgerToServer(newRows); } catch (error) { console.warn("Server ledger save failed", error); }
@@ -3859,7 +3955,7 @@
         const horizonDays = Number(horizonSelect.value) || 5;
         const rawRows = forwardModelUniverse(snapshot, model)
           .map(([symbol, weight]) => {
-            const forecast = forecastSymbol(snapshot, symbol, horizonDays, model);
+            const forecast = forecastSymbol(snapshot, symbol, horizonDays, model, version);
             return forecast ? { ...forecast, targetWeight: Number(weight) || 0 } : null;
           })
           .filter(Boolean)
@@ -3867,6 +3963,8 @@
         const weightSum = rawRows.reduce((sum, row) => sum + row.targetWeight, 0);
         const rows = rawRows.map(row => ({ ...row, targetWeight: weightSum > .01 ? row.targetWeight / weightSum : 1 / Math.max(1, rawRows.length) }));
         lastForwardRows = rows.map(row => ({
+          modelVersion: version,
+          versionLabel: versionLabel(version),
           strategy: model.name,
           horizonDays,
           symbol: row.symbol,
@@ -3879,14 +3977,15 @@
           targetWeight: row.targetWeight,
           confidence: row.confidence,
           realtime: row.realtime,
-          quoteAsOf: row.quoteAsOf
+          quoteAsOf: row.quoteAsOf,
+          signalsUsed: version === "v4" ? "market regime + relative strength + volatility penalty" : "baseline momentum-volatility"
         }));
         const table = document.getElementById("forwardSignalRows");
         if (table) {
           table.innerHTML = rows.length ? rows.map((row, index) => `
             <tr>
               <td>${index + 1}</td>
-              <td><strong>${escapeHtml(row.symbol)}</strong><br><small>${escapeHtml(row.profile)} / JPM AI ${number(row.jpmAIScore, 2)} / ${row.realtime ? "Realtime quote" : "Embedded close"}</small></td>
+              <td><strong>${escapeHtml(row.symbol)}</strong><br><small>${escapeHtml(row.profile)} / ${escapeHtml(versionLabel(version))} / JPM AI ${number(row.jpmAIScore, 2)} / ${row.realtime ? "Realtime quote" : "Embedded close"}</small></td>
               <td class="num">$${number(row.currentPrice, 2)}</td>
               <td class="num">${percent(row.predictedReturn, 2)}</td>
               <td class="num">$${number(row.predictedPrice, 2)}</td>
@@ -3902,7 +4001,7 @@
         const buyCount = rows.filter(row => row.signal === "Buy").length;
         const pendingCount = lastForwardRows.filter(row => forwardActualCheck(snapshot, row) === "Pending").length;
         const forecastDate = rows[0]?.date || snapshot.generatedAt?.slice(0, 10) || "--";
-        setText("forwardMode", realtimeCount ? "Realtime signal forecast" : "Embedded forecast");
+        setText("forwardMode", `${versionLabel(version)} / ${realtimeCount ? "Realtime signal forecast" : "Embedded forecast"}`);
         setText("forwardAsOf", realtimeCount ? `Realtime quote-driven signal refresh: ${new Date().toLocaleTimeString()}` : `Latest embedded stock close: ${forecastDate}`);
         setText("forwardDate", forecastDate);
         setText("forwardExpectedReturn", percent(expectedReturn, 2));
@@ -3935,13 +4034,19 @@
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const payload = await response.json();
           const latest = payload.latestRun;
-          const checked = Number(payload.checked || 0);
-          const hitRate = Number(payload.hitRate);
-          setText("forwardAutoLedger", `${Number(payload.ledgerRows || 0)} rows / ${Number(payload.pending || 0)} pending`);
+          const activeVersion = selectedForwardVersion();
+          const versionStatus = Array.isArray(payload.versions)
+            ? payload.versions.find(item => item.id === activeVersion)
+            : null;
+          const checked = Number(versionStatus?.checked ?? payload.checked ?? 0);
+          const hitRate = Number(versionStatus?.hitRate ?? payload.hitRate);
+          const ledgerRows = Number(versionStatus?.rows ?? payload.ledgerRows ?? 0);
+          const pendingRows = Number(versionStatus?.pending ?? payload.pending ?? 0);
+          setText("forwardAutoLedger", `${versionLabel(activeVersion)}: ${ledgerRows} rows / ${pendingRows} pending`);
           setText("forwardAutoRun", latest?.ranAt ? new Date(latest.ranAt).toLocaleString() : "Waiting");
           setText("weeklyBacktestMode", latest?.ranAt ? "Auto signal validation ready" : "Endpoint ready");
           if (Number.isFinite(hitRate) && checked > 0) {
-            setText("forwardPendingCount", `${Number(payload.pending || 0)} pending / ${percent(hitRate, 1)} hit`);
+            setText("forwardPendingCount", `${pendingRows} pending / ${percent(hitRate, 1)} hit`);
           }
         } catch (error) {
           setText("forwardAutoLedger", "Local only");
@@ -3950,7 +4055,7 @@
       }
       function renderApprovalScoreboard() {
         const training = parseEmbeddedData("v123TrainingResults");
-        const allBacktestData = parseEmbeddedData("allStrategyBacktests");
+        const allBacktestData = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), selectedDashboardVersion());
         if (!training) return;
         const allComparable = [...(allBacktestData?.coreModels || []), ...(allBacktestData?.strategies || [])];
         const spyBenchmark = (allBacktestData?.benchmarks || []).find(item => item.name === "SPY Benchmark");
@@ -4011,7 +4116,7 @@
       }
 
       function renderRiskdeskBacktests() {
-        const all = parseEmbeddedData("allStrategyBacktests");
+        const all = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), selectedDashboardVersion());
         if (!all) return;
         const v1 = itemByName(all, "V1 Momentum-Vol Research Model") || all.coreModels?.[0];
         const v2 = itemByName(all, "V2 HMM-GARCH-MVO");
@@ -4038,6 +4143,12 @@
         renderLiveMonitor();
         renderForwardSignals();
       }
+
+      document.getElementById("dashboardVersionSelect")?.addEventListener("change", () => {
+        const forwardVersion = document.getElementById("forwardVersionSelect");
+        if (forwardVersion) forwardVersion.value = selectedDashboardVersion();
+        renderRiskdeskBacktests();
+      });
 
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", renderRiskdeskBacktests);

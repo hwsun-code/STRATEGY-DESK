@@ -105,6 +105,21 @@ function weightsFromModel(model, stockSymbols) {
   return stockSymbols.slice(0, 5).map(symbol => [symbol, 1 / 5]);
 }
 
+const AUTOMATION_VERSIONS = [
+  {
+    id: "v35",
+    label: "Version 3.5 Baseline",
+    automationVersion: "daily-v35",
+    mode: "baseline momentum-volatility"
+  },
+  {
+    id: "v4",
+    label: "Version 4 Market-Adaptive",
+    automationVersion: "daily-v4",
+    mode: "market regime + relative strength + volatility penalty"
+  }
+];
+
 async function historyFor(symbol) {
   try {
     const result = await fetchYahooChart(symbol, "1y", "1d");
@@ -121,7 +136,24 @@ async function historyFor(symbol) {
   };
 }
 
-function forecastRow({ model, symbol, weight, history, horizonDays }) {
+function marketContext(historiesBySymbol) {
+  const pricesFor = symbol => historiesBySymbol.get(symbol)?.points?.map(point => Number(point.price)).filter(Number.isFinite) || [];
+  const spy20 = pctChange(pricesFor("SPY"), 20);
+  const qqq20 = pctChange(pricesFor("QQQ"), 20);
+  const tlt20 = pctChange(pricesFor("TLT"), 20);
+  const vix5 = pctChange(pricesFor("^VIX"), 5);
+  const riskOn = clamp(0.55 * spy20 + 0.35 * qqq20 + 0.08 * tlt20 - 0.18 * Math.max(0, vix5), -0.08, 0.08);
+  return {
+    spy20,
+    qqq20,
+    tlt20,
+    vix5,
+    riskOn,
+    regime: riskOn >= 0.01 ? "Risk-on" : riskOn <= -0.01 ? "Risk-off" : "Neutral"
+  };
+}
+
+function forecastRow({ model, symbol, weight, history, horizonDays, version, context }) {
   const points = history.points;
   if (!points || points.length < 60) return null;
   const prices = points.map(point => Number(point.price)).filter(Number.isFinite);
@@ -133,7 +165,12 @@ function forecastRow({ model, symbol, weight, history, horizonDays }) {
   const mom60 = pctChange(prices, 60);
   const vol20 = stdev(returns.slice(-20)) * Math.sqrt(252);
   const trendScore = 0.5 * mom20 + 0.35 * mom60 + 0.15 * mom5;
-  const raw = trendScore * Math.sqrt(horizonDays / 20) - Math.max(0, vol20 - 0.28) * 0.035;
+  const relativeStrength = mom20 - (context?.spy20 || 0);
+  const raw = version?.id === "v4"
+    ? (0.4 * mom20 + 0.25 * mom5 + 0.2 * mom60 + 0.15 * relativeStrength) * Math.sqrt(horizonDays / 20)
+      + (context?.riskOn || 0) * 0.18
+      - Math.max(0, vol20 - 0.24) * 0.055
+    : trendScore * Math.sqrt(horizonDays / 20) - Math.max(0, vol20 - 0.28) * 0.035;
   const cap = horizonDays <= 1 ? 0.02 : horizonDays <= 5 ? 0.055 : 0.12;
   const predictedReturn = clamp(raw, -cap, cap);
   const horizonVol = Math.max(0.003, vol20 / Math.sqrt(252) * Math.sqrt(horizonDays));
@@ -145,6 +182,8 @@ function forecastRow({ model, symbol, weight, history, horizonDays }) {
       ? "Reduce"
       : "Hold";
   return {
+    modelVersion: version?.id || "v35",
+    versionLabel: version?.label || "Version 3.5 Baseline",
     strategy: model.name,
     horizonDays,
     symbol,
@@ -156,9 +195,12 @@ function forecastRow({ model, symbol, weight, history, horizonDays }) {
     probabilityUp,
     signal,
     targetWeight: weight,
-    confidence: clamp(Math.abs(probabilityUp - 0.5) * 2 + Math.min(0.2, Math.abs(mom20) * 2), 0, 1),
+    confidence: clamp(Math.abs(probabilityUp - 0.5) * 2 + Math.min(0.2, Math.abs(mom20) * 2) + (version?.id === "v4" ? Math.min(0.12, Math.abs(relativeStrength) * 1.2) : 0), 0, 1),
     provider: history.provider,
-    automationVersion: "daily-v1"
+    marketRegime: context?.regime || "Neutral",
+    marketRiskOn: context?.riskOn || 0,
+    signalsUsed: version?.mode || "baseline momentum-volatility",
+    automationVersion: version?.automationVersion || "daily-v35"
   };
 }
 
@@ -189,7 +231,7 @@ function validateRows(rows, historiesBySymbol) {
 }
 
 function rowId(row) {
-  return [row.strategy, row.horizonDays, row.symbol, row.forecastDate, row.automationVersion || ""].join("|");
+  return [row.modelVersion || "v35", row.strategy, row.horizonDays, row.symbol, row.forecastDate, row.automationVersion || ""].join("|");
 }
 
 async function runWeeklyAutomation({ source = "scheduled" } = {}) {
@@ -203,18 +245,22 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
   for (const model of selectedModels) {
     for (const [symbol] of weightsFromModel(model, stockSymbols)) wantedSymbols.add(symbol);
   }
+  ["SPY", "QQQ", "TLT", "^VIX"].forEach(symbol => wantedSymbols.add(symbol));
   const histories = await Promise.all([...wantedSymbols].map(historyFor));
   const historiesBySymbol = new Map(histories.map(history => [history.symbol, history]));
+  const context = marketContext(historiesBySymbol);
   const validation = validateRows(existingRows, historiesBySymbol);
   const newRows = [];
-  for (const model of selectedModels) {
-    for (const horizonDays of [1]) {
-      const weights = weightsFromModel(model, stockSymbols);
-      const weightSum = weights.reduce((sum, [, weight]) => sum + weight, 0) || 1;
-      for (const [symbol, rawWeight] of weights) {
-        const history = historiesBySymbol.get(symbol) || await historyFor(symbol);
-        const row = forecastRow({ model, symbol, weight: rawWeight / weightSum, history, horizonDays });
-        if (row) newRows.push({ ...row, recordedAt: new Date().toISOString(), source });
+  for (const version of AUTOMATION_VERSIONS) {
+    for (const model of selectedModels) {
+      for (const horizonDays of [1]) {
+        const weights = weightsFromModel(model, stockSymbols);
+        const weightSum = weights.reduce((sum, [, weight]) => sum + weight, 0) || 1;
+        for (const [symbol, rawWeight] of weights) {
+          const history = historiesBySymbol.get(symbol) || await historyFor(symbol);
+          const row = forecastRow({ model, symbol, weight: rawWeight / weightSum, history, horizonDays, version, context });
+          if (row) newRows.push({ ...row, recordedAt: new Date().toISOString(), source });
+        }
       }
     }
   }
@@ -240,6 +286,8 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
     hits: validation.hit,
     hitRate: validation.checked ? validation.hit / validation.checked : null,
     models: selectedModels.length,
+    versions: AUTOMATION_VERSIONS.map(version => version.id),
+    marketRegime: context.regime,
     symbols: [...wantedSymbols],
     note: saved ? "Daily automation generated forecasts and validated due rows." : "Automation generated forecasts, but persistent cloud storage is not available yet. Use returned rows as a temporary diagnostic only."
   };
@@ -258,6 +306,19 @@ async function automationStatus() {
   const pending = rows.filter(row => row.actualStatus !== "Hit" && row.actualStatus !== "Miss").length;
   const checked = rows.filter(row => row.actualStatus === "Hit" || row.actualStatus === "Miss");
   const hits = checked.filter(row => row.actualStatus === "Hit").length;
+  const byVersion = AUTOMATION_VERSIONS.map(version => {
+    const versionRows = rows.filter(row => (row.modelVersion || "v35") === version.id);
+    const versionChecked = versionRows.filter(row => row.actualStatus === "Hit" || row.actualStatus === "Miss");
+    const versionHits = versionChecked.filter(row => row.actualStatus === "Hit").length;
+    return {
+      id: version.id,
+      label: version.label,
+      rows: versionRows.length,
+      pending: versionRows.filter(row => row.actualStatus !== "Hit" && row.actualStatus !== "Miss").length,
+      checked: versionChecked.length,
+      hitRate: versionChecked.length ? versionHits / versionChecked.length : null
+    };
+  });
   return {
     source: "RiskDesk daily automation",
     storage: store ? "Netlify Blobs" : "No persistent store available",
@@ -266,7 +327,8 @@ async function automationStatus() {
     ledgerRows: rows.length,
     pending,
     checked: checked.length,
-    hitRate: checked.length ? hits / checked.length : null
+    hitRate: checked.length ? hits / checked.length : null,
+    versions: byVersion
   };
 }
 
