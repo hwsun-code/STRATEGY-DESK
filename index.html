@@ -169,6 +169,7 @@
         transform .5s ease,
         filter .5s ease;
     }
+    #workflow { order: 1000; }
     .reveal-enabled section {
       opacity: 0;
       transform: translateY(34px);
@@ -560,7 +561,9 @@
     .forecast-pill.reduce { color: #fff; background: #ef6b75; }
     .forecast-method { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
     .forecast-method .action-item { grid-template-columns: 76px minmax(0, 1fr); }
-    .ledger-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .ledger-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: end; }
+    .ledger-actions label { display: grid; gap: 4px; min-width: 126px; color: var(--muted); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+    .ledger-actions select { min-height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 5px; color: #fff; background: #03070b; font-weight: 900; }
     .feedback-grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 10px; }
     .feedback-card { padding: 13px; border: 1px solid var(--line); border-radius: 7px; background: #080b0f; }
     .feedback-card h3 { margin: 0 0 10px; font-size: 17px; text-transform: uppercase; }
@@ -807,9 +810,9 @@
           <a href="#live-monitor">Live Quotes</a>
           <a href="#strategy-comparison">Comparison</a>
           <a href="#forward-signals">Forward Signals</a>
-          <a href="#workflow">Workflow</a>
         <a href="#training">Parameters</a>
         <a href="#experiments">Daily Feedback</a>
+        <a href="#workflow">Workflow</a>
       </nav>
       <button class="refresh" id="refreshBtn" type="button">Refresh Research View</button>
     </aside>
@@ -1236,8 +1239,24 @@
           </div>
 
           <div class="panel table-wrap">
-            <div class="panel-title"><span>Recent Prediction Results</span><span>Predicted price and return are shown with actual price, actual return and hit/miss status</span></div>
+            <div class="panel-title"><span>Recent Prediction Results</span><span id="forwardLedgerSummary">Latest rows only; use filters for full history</span></div>
             <div class="ledger-actions" style="margin-bottom:10px">
+              <label>Status
+                <select id="forwardResultFilter">
+                  <option value="all" selected>All</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Hit">Hit</option>
+                  <option value="Miss">Miss</option>
+                </select>
+              </label>
+              <label>Show
+                <select id="forwardLedgerLimit">
+                  <option value="10" selected>Latest 10</option>
+                  <option value="20">Latest 20</option>
+                  <option value="50">Latest 50</option>
+                  <option value="all">All Rows</option>
+                </select>
+              </label>
               <button class="console-button" id="forwardClearBtn" type="button">Clear Ledger</button>
             </div>
             <table class="feedback-table">
@@ -1311,8 +1330,8 @@
       <section id="training">
         <div class="section-head">
           <div>
-            <h2>Parameter &amp; Split Setup</h2>
-            <p>This is the baseline setup area for later tuning. It explains train, validation and test splits plus current model parameters; it is not the final performance result.</p>
+            <h2>Research Appendix: Parameters &amp; Splits</h2>
+            <p>This section is supporting documentation, not the main result. Use it only when changing strategy logic or checking train, validation and test assumptions.</p>
           </div>
           <span class="pill watch" id="trainingStatus">Baseline split</span>
         </div>
@@ -1332,7 +1351,7 @@
           </table>
         </details>
         <div class="two-col" style="margin-top:14px">
-          <details class="panel table-wrap" open>
+          <details class="panel table-wrap">
             <summary>Current Model Parameters</summary>
             <div class="panel-title"><span>Current Parameters</span><span>Baseline settings</span></div>
             <table>
@@ -3960,12 +3979,18 @@
         const node = document.getElementById("forwardLedgerRows");
         if (!node) return;
         const activeVersion = selectedForwardVersion();
-        const ledger = loadForwardLedger()
+        const resultFilter = document.getElementById("forwardResultFilter")?.value || "all";
+        const limitValue = document.getElementById("forwardLedgerLimit")?.value || "10";
+        const withOutcome = loadForwardLedger()
           .filter(row => (row.modelVersion || "v35") === activeVersion)
-          .slice(-50)
-          .reverse();
+          .map(row => ({ row, outcome: forwardOutcome(snapshot, row) }))
+          .filter(item => resultFilter === "all" || item.outcome.status === resultFilter);
+        const limit = limitValue === "all" ? withOutcome.length : Number(limitValue) || 10;
+        const ledger = withOutcome.slice(-limit).reverse();
+        setText("forwardLedgerSummary", `${versionLabel(activeVersion)} / ${withOutcome.length} matching rows / showing ${ledger.length}`);
         node.innerHTML = ledger.length ? ledger.map(row => {
-          const outcome = forwardOutcome(snapshot, row);
+          const outcome = row.outcome;
+          row = row.row;
           const resultClass = outcome.status === "Hit" ? "buy" : outcome.status === "Miss" ? "reduce" : "hold";
           const version = row.versionLabel || versionLabel(row.modelVersion || "v35");
           return `
@@ -3982,7 +4007,7 @@
               <td><span class="forecast-pill ${resultClass}">${escapeHtml(outcome.status)}</span></td>
             </tr>
           `;
-        }).join("") : `<tr><td colspan="10">No daily prediction feedback rows for this version yet. The backend will write one-day forecasts here after the next automatic run.</td></tr>`;
+        }).join("") : `<tr><td colspan="10">No matching rows. Change the status filter or wait for the next automatic daily forecast.</td></tr>`;
       }
 
       function renderForwardSignals() {
@@ -4001,6 +4026,8 @@
           strategySelect.addEventListener("change", renderForwardSignals);
           horizonSelect.addEventListener("change", renderForwardSignals);
           versionSelect?.addEventListener("change", renderForwardSignals);
+          document.getElementById("forwardResultFilter")?.addEventListener("change", () => renderForwardLedger(snapshot));
+          document.getElementById("forwardLedgerLimit")?.addEventListener("change", () => renderForwardLedger(snapshot));
           document.getElementById("forwardRefreshBtn")?.addEventListener("click", renderForwardSignals);
           document.getElementById("forwardRecordBtn")?.addEventListener("click", async () => {
             const ledger = loadForwardLedger();
