@@ -550,7 +550,7 @@
     .live-stat span { color: var(--muted); font-size: 12px; text-transform: uppercase; }
     .live-stat strong { display: block; margin-top: 11px; font-size: 24px; font-weight: 900; }
     .forward-shell { display: grid; gap: 14px; }
-    .forecast-controls { display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(130px, .7fr) auto auto; gap: 9px; align-items: end; }
+    .forecast-controls { display: grid; grid-template-columns: minmax(150px, .8fr) minmax(260px, 1.4fr) minmax(130px, .55fr) auto auto; gap: 9px; align-items: end; }
     .forecast-controls label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
     .forecast-controls select { width: 100%; min-height: 44px; padding: 0 11px; color: var(--ink); background: #080b0f; border: 1px solid var(--line); border-radius: 6px; outline: none; }
     .forecast-controls select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(104,169,255,.12); }
@@ -561,6 +561,24 @@
     .forecast-method { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
     .forecast-method .action-item { grid-template-columns: 76px minmax(0, 1fr); }
     .ledger-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .feedback-grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 10px; }
+    .feedback-card { padding: 13px; border: 1px solid var(--line); border-radius: 7px; background: #080b0f; }
+    .feedback-card h3 { margin: 0 0 10px; font-size: 17px; text-transform: uppercase; }
+    .feedback-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .feedback-stats span { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; }
+    .feedback-stats strong { display: block; margin-top: 4px; font-size: 20px; }
+    .feedback-table { min-width: 1120px; table-layout: fixed; }
+    .feedback-table th, .feedback-table td { white-space: normal; overflow-wrap: normal; word-break: normal; }
+    .feedback-table th:nth-child(1), .feedback-table td:nth-child(1) { width: 86px; }
+    .feedback-table th:nth-child(2), .feedback-table td:nth-child(2) { width: 170px; }
+    .feedback-table th:nth-child(3), .feedback-table td:nth-child(3) { width: 74px; }
+    .feedback-table th:nth-child(4), .feedback-table td:nth-child(4),
+    .feedback-table th:nth-child(5), .feedback-table td:nth-child(5) { width: 92px; }
+    .feedback-table th:nth-child(6), .feedback-table td:nth-child(6),
+    .feedback-table th:nth-child(7), .feedback-table td:nth-child(7),
+    .feedback-table th:nth-child(8), .feedback-table td:nth-child(8),
+    .feedback-table th:nth-child(9), .feedback-table td:nth-child(9) { width: 88px; }
+    .feedback-table th:nth-child(10), .feedback-table td:nth-child(10) { width: 86px; }
     .mini-muted { color: var(--muted); font-size: 12px; line-height: 1.55; }
     .strategy-matrix { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 9px; margin: 14px 0; }
     .strategy-capability { padding: 14px; border: 1px solid var(--line); border-radius: 7px; background: rgba(5,8,11,.9); transition: transform .22s ease, border-color .22s ease, background .22s ease; }
@@ -791,7 +809,7 @@
           <a href="#forward-signals">Forward Signals</a>
           <a href="#workflow">Workflow</a>
         <a href="#training">Parameters</a>
-        <a href="#experiments">Experiment Log</a>
+        <a href="#experiments">Daily Feedback</a>
       </nav>
       <button class="refresh" id="refreshBtn" type="button">Refresh Research View</button>
     </aside>
@@ -1212,29 +1230,20 @@
             </div>
           </div>
 
-          <div class="panel table-wrap">
-            <div class="panel-title"><span>Selected Strategy Forecast Table</span><span>Predicted price, predicted return and action</span></div>
-            <table>
-              <thead><tr><th>Rank</th><th>Symbol</th><th class="num">Current Price</th><th class="num">Pred Return</th><th class="num">Pred Price</th><th class="num">Prob Up</th><th>Signal</th><th class="num">Target Weight</th><th class="num">Confidence</th></tr></thead>
-              <tbody id="forwardSignalRows"></tbody>
-            </table>
+          <div class="panel">
+            <div class="panel-title"><span>Daily Prediction Feedback</span><span>Version 3.5 vs Version 4, checked after real prices arrive</span></div>
+            <div class="feedback-grid" id="dailyFeedbackCards"></div>
           </div>
 
-          <div class="forecast-method">
-            <div class="action-list">
-              <div class="action-item"><span class="pill">Price</span><div><strong>Predicted Price = Current Price x (1 + Predicted Return)</strong><p class="mini-muted">This is what the boss means by showing a forward price target. It is generated for the stocks held or selected by the chosen strategy.</p></div></div>
-              <div class="action-item"><span class="pill">Return</span><div><strong>Predicted Return combines short momentum, medium momentum, 12-1 momentum, volatility penalty, and JP Morgan-inspired AI factor score.</strong><p class="mini-muted">It is a research signal, not guaranteed market truth. The output becomes Buy, Hold, or Reduce.</p></div></div>
+          <div class="panel table-wrap">
+            <div class="panel-title"><span>Recent Prediction Results</span><span>Predicted price and return are shown with actual price, actual return and hit/miss status</span></div>
+            <div class="ledger-actions" style="margin-bottom:10px">
+              <button class="console-button" id="forwardClearBtn" type="button">Clear Ledger</button>
             </div>
-            <div class="panel table-wrap">
-              <div class="panel-title"><span>Paper Signal Validation Ledger</span><span>Recorded signals are checked against later real prices</span></div>
-              <div class="ledger-actions" style="margin-bottom:10px">
-                <button class="console-button" id="forwardClearBtn" type="button">Clear Ledger</button>
-              </div>
-              <table>
-                <thead><tr><th>Record Time</th><th>Forecast Date</th><th>Strategy</th><th>Horizon</th><th>Symbol</th><th>Signal</th><th class="num">Pred Return</th><th class="num">Pred Price</th><th>Actual Check</th></tr></thead>
-                <tbody id="forwardLedgerRows"></tbody>
-              </table>
-            </div>
+            <table class="feedback-table">
+              <thead><tr><th>Version</th><th>Strategy</th><th>Symbol</th><th>Forecast</th><th>Due</th><th class="num">Pred Ret</th><th class="num">Pred Price</th><th class="num">Actual Ret</th><th class="num">Actual Price</th><th>Result</th></tr></thead>
+              <tbody id="forwardLedgerRows"></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -1343,15 +1352,15 @@
       <section id="experiments">
         <div class="section-head">
           <div>
-            <h2>Parameter Experiment Log</h2>
-            <p>This is a baseline tuning log, not live performance. Validation Sharpe is used to choose parameters; Test Sharpe checks the chosen version out-of-sample before the scorecard ranks it.</p>
+            <h2>Daily Prediction Feedback</h2>
+            <p>This replaces the old experiment log. It records every daily one-trading-day forecast, then compares predicted price and return with the later real price.</p>
           </div>
-          <span class="pill watch" id="experimentStatus">Baseline experiments</span>
+          <span class="pill" id="experimentStatus">Forward ledger</span>
         </div>
         <div class="panel table-wrap">
-          <div class="panel-title"><span>Parameter Grid Overview</span><span>Baseline search space, validation evidence and test check</span></div>
+          <div class="panel-title"><span>Version Feedback Summary</span><span>Rows, pending checks, completed checks and hit rate</span></div>
           <table>
-            <thead><tr><th>Model</th><th class="num">Candidate Combos</th><th class="num">Validation Sharpe</th><th class="num">Test Sharpe</th><th>Next Action</th></tr></thead>
+            <thead><tr><th>Version</th><th class="num">Rows</th><th class="num">Pending</th><th class="num">Checked</th><th class="num">Hit Rate</th><th>Use</th></tr></thead>
             <tbody id="experimentRows"></tbody>
           </table>
         </div>
@@ -3262,29 +3271,28 @@
         }).join(", ");
       }
 
-      function renderParameterExperiments() {
-        const training = parseEmbeddedData("v123TrainingResults");
-        if (!training) return;
-        const models = training.models || [];
-        setText("experimentStatus", `${models.length} model grids`);
+      function renderParameterExperiments(payload = latestAutomationStatus) {
         const rows = document.getElementById("experimentRows");
         if (!rows) return;
-        rows.innerHTML = models.map(model => {
-          const combos = gridCombinationCount(model.parameters?.candidateGrid || {});
-          const validation = model.splitResults?.validation || {};
-          const test = model.splitResults?.test || {};
-          const nextAction = model.approval?.decision === "Activate"
-            ? "Keep as candidate; stress test costs and live paper behavior."
-            : model.approval?.decision === "Tune"
-              ? "Run validation grid search before judging final test."
-              : "Watch; redesign signal or reduce turnover before approval.";
+        const versions = Array.isArray(payload?.versions) ? payload.versions : [];
+        setText("experimentStatus", versions.length ? "Daily feedback ledger" : "Waiting for automation");
+        if (!versions.length) {
+          rows.innerHTML = `<tr><td colspan="6">Waiting for the live automation ledger. Daily prediction rows will appear here after the backend reports status.</td></tr>`;
+          return;
+        }
+        rows.innerHTML = versions.map(item => {
+          const hitRate = Number(item.hitRate);
+          const useCase = item.id === "v4"
+            ? "New candidate: compare against 3.5 before replacing baseline."
+            : "Control baseline: keep stable while version 4 is tested.";
           return `
             <tr>
-              <td><strong>${escapeHtml(model.name)}</strong><br><small>${escapeHtml(model.group || "Research model")}</small></td>
-              <td class="num">${combos || "--"}</td>
-              <td class="num">${number(validation.sharpe)}</td>
-              <td class="num">${number(test.sharpe)}</td>
-              <td>${escapeHtml(nextAction)}</td>
+              <td><strong>${escapeHtml(item.label || versionLabel(item.id))}</strong><br><small>${escapeHtml(item.id || "")}</small></td>
+              <td class="num">${number(item.rows, 0)}</td>
+              <td class="num">${number(item.pending, 0)}</td>
+              <td class="num">${number(item.checked, 0)}</td>
+              <td class="num">${Number.isFinite(hitRate) ? percent(hitRate, 1) : "--"}</td>
+              <td>${escapeHtml(useCase)}</td>
             </tr>
           `;
         }).join("");
@@ -3625,6 +3633,7 @@
       const forwardLedgerKey = "riskdesk.forwardPredictionLedger.v35";
       let lastForwardRows = [];
       let forwardServerLedgerLoaded = false;
+      let latestAutomationStatus = null;
 
       function simpleAverage(values) {
         return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
@@ -3894,27 +3903,86 @@
         if (!response.ok) throw new Error(`Ledger clear returned HTTP ${response.status}`);
       }
 
+      function compactStrategyName(name) {
+        return String(name || "Strategy")
+          .replace(/^JPM\s*/i, "")
+          .replace(/\s+Strategy\s*/i, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function addTradingDays(dateText, days) {
+        const date = new Date(`${dateText}T12:00:00`);
+        if (Number.isNaN(date.getTime())) return "";
+        let remaining = Math.max(1, Number(days || 1));
+        while (remaining > 0) {
+          date.setDate(date.getDate() + 1);
+          const day = date.getDay();
+          if (day !== 0 && day !== 6) remaining -= 1;
+        }
+        return date.toISOString().slice(0, 10);
+      }
+
+      function forwardOutcome(snapshot, row) {
+        const storedStatus = row.actualStatus || row.status;
+        const storedReturn = Number(row.actualReturn);
+        const storedPrice = Number(row.actualPrice);
+        if (storedStatus === "Hit" || storedStatus === "Miss") {
+          return {
+            status: storedStatus,
+            actualDate: row.actualDate || row.dueDate || "",
+            actualPrice: Number.isFinite(storedPrice) ? storedPrice : null,
+            actualReturn: Number.isFinite(storedReturn) ? storedReturn : null
+          };
+        }
+        const history = stockHistory(snapshot, row.symbol);
+        const horizon = Math.max(1, Number(row.horizonDays || 1));
+        const startIndex = history.findIndex(point => point.date === row.forecastDate);
+        if (startIndex < 0 || startIndex + horizon >= history.length) {
+          return { status: "Pending", actualDate: row.dueDate || "", actualPrice: null, actualReturn: null };
+        }
+        const actual = history[startIndex + horizon];
+        const currentPrice = Number(row.currentPrice);
+        const predictedReturn = Number(row.predictedReturn);
+        const actualReturn = currentPrice ? actual.price / currentPrice - 1 : null;
+        const hit = Number.isFinite(actualReturn) && Number.isFinite(predictedReturn)
+          ? Math.sign(actualReturn) === Math.sign(predictedReturn) || Math.abs(predictedReturn) < .002
+          : false;
+        return {
+          status: hit ? "Hit" : "Miss",
+          actualDate: actual.date,
+          actualPrice: actual.price,
+          actualReturn
+        };
+      }
+
       function renderForwardLedger(snapshot) {
         const node = document.getElementById("forwardLedgerRows");
         if (!node) return;
         const activeVersion = selectedForwardVersion();
         const ledger = loadForwardLedger()
           .filter(row => (row.modelVersion || "v35") === activeVersion)
-          .slice(-30)
+          .slice(-50)
           .reverse();
-        node.innerHTML = ledger.length ? ledger.map(row => `
-          <tr>
-            <td>${escapeHtml(row.recordedAt)}</td>
-            <td>${escapeHtml(row.forecastDate)}</td>
-            <td>${escapeHtml(row.strategy)}<br><small>${escapeHtml(row.versionLabel || versionLabel(row.modelVersion || "v35"))}</small></td>
-            <td>${row.horizonDays}D</td>
-            <td>${escapeHtml(row.symbol)}</td>
-            <td><span class="forecast-pill ${row.signal.toLowerCase()}">${escapeHtml(row.signal)}</span></td>
-            <td class="num">${percent(row.predictedReturn, 2)}</td>
-            <td class="num">$${number(row.predictedPrice, 2)}</td>
-            <td>${escapeHtml(forwardActualCheck(snapshot, row))}</td>
-          </tr>
-        `).join("") : `<tr><td colspan="9">No recorded paper signals yet. Click Record Today after choosing a strategy and horizon.</td></tr>`;
+        node.innerHTML = ledger.length ? ledger.map(row => {
+          const outcome = forwardOutcome(snapshot, row);
+          const resultClass = outcome.status === "Hit" ? "buy" : outcome.status === "Miss" ? "reduce" : "hold";
+          const version = row.versionLabel || versionLabel(row.modelVersion || "v35");
+          return `
+            <tr>
+              <td><strong>${escapeHtml(version.replace("Version ", "V"))}</strong></td>
+              <td><strong>${escapeHtml(compactStrategyName(row.strategy))}</strong><br><small>${escapeHtml(row.strategy || "")}</small></td>
+              <td><strong>${escapeHtml(row.symbol)}</strong></td>
+              <td>${escapeHtml(row.forecastDate || "")}</td>
+              <td>${escapeHtml(row.dueDate || outcome.actualDate || "")}</td>
+              <td class="num">${percent(row.predictedReturn, 2)}</td>
+              <td class="num">$${number(row.predictedPrice, 2)}</td>
+              <td class="num">${Number.isFinite(outcome.actualReturn) ? percent(outcome.actualReturn, 2) : "--"}</td>
+              <td class="num">${Number.isFinite(outcome.actualPrice) ? `$${number(outcome.actualPrice, 2)}` : "--"}</td>
+              <td><span class="forecast-pill ${resultClass}">${escapeHtml(outcome.status)}</span></td>
+            </tr>
+          `;
+        }).join("") : `<tr><td colspan="10">No daily prediction feedback rows for this version yet. The backend will write one-day forecasts here after the next automatic run.</td></tr>`;
       }
 
       function renderForwardSignals() {
@@ -3969,6 +4037,7 @@
           horizonDays,
           symbol: row.symbol,
           forecastDate: row.date,
+          dueDate: addTradingDays(row.date, horizonDays),
           currentPrice: row.currentPrice,
           predictedReturn: row.predictedReturn,
           predictedPrice: row.predictedPrice,
@@ -4028,11 +4097,57 @@
         setText("weeklyBacktestLast", training?.generatedAt?.slice(0, 10) || snapshot?.generatedAt?.slice(0, 10) || "Embedded");
       }
 
+      function renderDailyFeedbackCards(payload = latestAutomationStatus) {
+        const node = document.getElementById("dailyFeedbackCards");
+        if (!node) return;
+        const versions = Array.isArray(payload?.versions) ? payload.versions : [];
+        if (!versions.length) {
+          node.innerHTML = `
+            <div class="feedback-card">
+              <h3>Daily Feedback</h3>
+              <div class="feedback-stats">
+                <div><span>Rows</span><strong>--</strong></div>
+                <div><span>Pending</span><strong>--</strong></div>
+                <div><span>Checked</span><strong>--</strong></div>
+                <div><span>Hit Rate</span><strong>--</strong></div>
+              </div>
+              <p class="mini-muted">Waiting for the backend ledger.</p>
+            </div>
+          `;
+          return;
+        }
+        node.innerHTML = versions.map(item => {
+          const hitRate = Number(item.hitRate);
+          const checked = Number(item.checked || 0);
+          const pending = Number(item.pending || 0);
+          const message = checked > 0
+            ? `${number(checked, 0)} checked rows are now available for evaluation.`
+            : pending > 0
+              ? "Forecasts are saved; results will change from Pending after the due market close is available."
+              : "No pending rows for this version yet.";
+          return `
+            <div class="feedback-card">
+              <h3>${escapeHtml(item.label || versionLabel(item.id))}</h3>
+              <div class="feedback-stats">
+                <div><span>Rows</span><strong>${number(item.rows, 0)}</strong></div>
+                <div><span>Pending</span><strong>${number(item.pending, 0)}</strong></div>
+                <div><span>Checked</span><strong>${number(item.checked, 0)}</strong></div>
+                <div><span>Hit Rate</span><strong>${Number.isFinite(hitRate) ? percent(hitRate, 1) : "--"}</strong></div>
+              </div>
+              <p class="mini-muted">${escapeHtml(message)}</p>
+            </div>
+          `;
+        }).join("");
+      }
+
       async function updateAutomationStatus() {
         try {
           const response = await fetch("/api/automation-status", { cache: "no-store" });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const payload = await response.json();
+          latestAutomationStatus = payload;
+          renderDailyFeedbackCards(payload);
+          renderParameterExperiments(payload);
           const latest = payload.latestRun;
           const activeVersion = selectedForwardVersion();
           const versionStatus = Array.isArray(payload.versions)
@@ -4048,9 +4163,17 @@
           if (Number.isFinite(hitRate) && checked > 0) {
             setText("forwardPendingCount", `${pendingRows} pending / ${percent(hitRate, 1)} hit`);
           }
+          try {
+            await loadForwardLedgerFromServer();
+            renderForwardLedger(parseEmbeddedData("publicMarketSnapshot"));
+          } catch (ledgerError) {
+            console.warn("Cloud ledger load failed", ledgerError);
+          }
         } catch (error) {
           setText("forwardAutoLedger", "Local only");
           setText("forwardAutoRun", "No cloud status");
+          renderDailyFeedbackCards(null);
+          renderParameterExperiments(null);
         }
       }
       function renderApprovalScoreboard() {
