@@ -564,6 +564,8 @@
     .ledger-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: end; }
     .ledger-actions label { display: grid; gap: 4px; min-width: 126px; color: var(--muted); font-size: 10px; font-weight: 900; text-transform: uppercase; }
     .ledger-actions select { min-height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 5px; color: #fff; background: #03070b; font-weight: 900; }
+    .section-version-control { display: grid; gap: 5px; min-width: 220px; color: var(--muted); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+    .section-version-control select { min-height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; color: #fff; background: #03070b; font-weight: 900; }
     .feedback-grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 10px; }
     .feedback-card { padding: 13px; border: 1px solid var(--line); border-radius: 7px; background: #080b0f; }
     .feedback-card h3 { margin: 0 0 10px; font-size: 17px; text-transform: uppercase; }
@@ -947,7 +949,12 @@
             <h2>Unified Walk-Forward Backtests</h2>
             <p>All fifteen models use prior-close information, monthly decisions, weight drift and consistent transaction costs. The selectable performance chart lives in Strategy Comparison above.</p>
           </div>
-          <span class="pill">Public data / calculated</span>
+          <label class="section-version-control">Backtest Version
+            <select id="backtestVersionSelect" data-dashboard-version-select>
+              <option value="v35" selected>Version 3.5 Baseline</option>
+              <option value="v4">Version 4 Market-Adaptive</option>
+            </select>
+          </label>
         </div>
         <div class="metric-grid">
           <div class="metric"><span>Sample Window</span><strong id="btSample">--</strong><small id="btObservations">Monthly rebalance</small></div>
@@ -958,7 +965,7 @@
           <div class="metric"><span>Annual Turnover</span><strong id="btTurnover">--</strong><small>5 bps one-way cost</small></div>
         </div>
         <div class="panel table-wrap" style="margin-top:14px">
-          <div class="panel-title"><span>All 15 Models and Benchmarks</span><span>Common sample period</span></div>
+          <div class="panel-title"><span>All 15 Models and Benchmarks</span><span id="backtestTableVersionLabel">Version 3.5 Baseline</span></div>
           <table><thead><tr><th>Model</th><th class="num">Annual Return</th><th class="num">Volatility</th><th class="num">Sharpe</th><th class="num">Max Drawdown</th><th class="num">Annual Turnover</th></tr></thead><tbody id="coreBacktestRows"></tbody></table>
         </div>
         <div class="backtest-panel">
@@ -984,20 +991,25 @@
         <div class="section-head">
           <div>
             <h2>Strategy Approval Scorecard</h2>
-            <p>This ranks the 15 strategies by Sharpe Ratio, the standard risk-adjusted return metric. Validation Sharpe is used for ranking; Test Sharpe is shown as the out-of-sample check.</p>
+            <p>This ranks the 15 strategies by the currently selected version's backtest Sharpe Ratio, then checks SPY-relative information ratio.</p>
           </div>
-          <span class="pill" id="approvalStatus">15 strategies</span>
+          <label class="section-version-control">Scoreboard Version
+            <select id="approvalVersionSelect" data-dashboard-version-select>
+              <option value="v35" selected>Version 3.5 Baseline</option>
+              <option value="v4">Version 4 Market-Adaptive</option>
+            </select>
+          </label>
         </div>
         <div class="panel" style="margin-bottom:12px">
-          <div class="panel-title"><span>Score Methodology</span><span>Sharpe Ratio-only ranking</span></div>
+          <div class="panel-title"><span>Score Methodology</span><span>Current-version Sharpe ranking</span></div>
           <div class="action-list">
             <div class="action-item"><span class="pill">Formula</span><div><strong>Sharpe Ratio = (Portfolio Return - Risk-Free Rate) / Portfolio Volatility</strong><p>The risk-free rate is set to zero in this research dashboard. Sharpe Ratio already penalizes volatility, so the approval score now uses Validation Sharpe directly instead of a custom weighted formula.</p></div></div>
-            <div class="action-item"><span class="pill watch">Rule</span><div><strong>Rank = highest Validation Sharpe. Test Sharpe is a separate out-of-sample check.</strong><p>Validation Sharpe is used to choose the strategy because it avoids choosing parameters from the final test period. Test Sharpe is reported to see whether the chosen strategy still works after validation.</p></div></div>
+            <div class="action-item"><span class="pill watch">Rule</span><div><strong>Rank = highest current-version backtest Sharpe.</strong><p>Switch Version 3.5 or Version 4 to see the same scoreboard rebuilt from that version's return curve and risk profile.</p></div></div>
             <div class="action-item"><span class="pill breach">Caution</span><div><strong>Raw Sharpe is inflated by the current surviving large-cap stock universe.</strong><p>The table therefore adds a SPY-relative information ratio check. If Raw Sharpe is above 1 but SPY-relative IR is weak, the strategy may simply be riding the same strong market beta.</p></div></div>
           </div>
         </div>
         <div class="panel table-wrap">
-          <div class="panel-title"><span>Approval Ranking</span><span>Ranked by Validation Sharpe Ratio</span></div>
+          <div class="panel-title"><span>Approval Ranking</span><span id="approvalStatus">Version 3.5 Baseline / ranked by current-version Sharpe</span></div>
           <table>
             <thead><tr><th>Rank</th><th>Strategy</th><th class="num">Sharpe Ratio</th><th>Decision</th><th class="num">SPY Active IR</th><th>Interpretation</th></tr></thead>
             <tbody id="approvalRows"></tbody>
@@ -1178,7 +1190,7 @@
               <p>Choose any four lines from the 15 models and benchmarks. This is the only main performance chart.</p>
             </div>
             <div class="comparison-selectors">
-              <label>Dashboard Version<select id="dashboardVersionSelect"><option value="v35" selected>Version 3.5 Baseline</option><option value="v4">Version 4 Market-Adaptive</option></select></label>
+              <label>Dashboard Version<select id="dashboardVersionSelect" data-dashboard-version-select><option value="v35" selected>Version 3.5 Baseline</option><option value="v4">Version 4 Market-Adaptive</option></select></label>
               <label>Comparison Line 01<select id="compareStrategyA"></select></label>
               <label>Comparison Line 02<select id="compareStrategyB"></select></label>
               <label>Comparison Line 03<select id="compareStrategyC"></select></label>
@@ -3130,11 +3142,12 @@
         const rows = comparableItems(all);
         const body = document.getElementById("coreBacktestRows");
         if (!body) return;
+        setText("backtestTableVersionLabel", `${versionLabel(selectedDashboardVersion())} / common sample period`);
         body.innerHTML = rows.map(item => {
           const m = item.metrics || {};
           return `
             <tr>
-              <td>${escapeHtml(item.name)}</td>
+              <td><strong>${escapeHtml(item.name)}</strong><br><small>${escapeHtml(versionLabel(selectedDashboardVersion()))}</small></td>
               <td class="num">${percent(m.cagr)}</td>
               <td class="num">${percent(m.volatility)}</td>
               <td class="num">${number(m.sharpe)}</td>
@@ -3186,14 +3199,12 @@
       }
 
       function renderBacktestMetrics(all) {
-        const v1 = itemByName(all, "V1 Momentum-Vol Research Model") || all.coreModels?.[0];
-        const v2 = itemByName(all, "V2 HMM-GARCH-MVO");
-        const v3 = itemByName(all, "V3 Boosted Trees + Attribution");
+        const best = topResearchItems(all, 1)[0] || all.coreModels?.[0];
         const spy = itemByName(all, "SPY Benchmark");
-        const sample = v1?.monthly || v2?.monthly || v3?.monthly || [];
+        const sample = best?.monthly || [];
         const first = sample[0]?.date?.slice(0, 7) || "--";
         const last = sample[sample.length - 1]?.date?.slice(0, 7) || "--";
-        const m = v1?.metrics || {};
+        const m = best?.metrics || {};
         setText("btSample", `${first} to ${last}`);
         setText("btObservations", `${sample.length} monthly observations`);
         setText("btReturn", percent(m.cagr));
@@ -3202,12 +3213,11 @@
         setText("btSharpe", number(m.sharpe));
         setText("btTurnover", Number.isFinite(m.annualTurnover) ? `${number(m.annualTurnover, 1)}x` : "--");
         setText("btSpySharpe", `SPY Sharpe: ${number(spy?.metrics?.sharpe)}`);
-        setText("btLatest", `Latest: ${last}`);
+        setText("btLatest", `${versionLabel(selectedDashboardVersion())} / Latest: ${last}`);
 
-        const best = [v1, v2, v3].filter(Boolean).sort((a, b) => (b.metrics?.sharpe ?? -99) - (a.metrics?.sharpe ?? -99))[0];
-        setText("btConclusion", best ? `Current sample winner by Sharpe is ${best.name} with Sharpe ${number(best.metrics?.sharpe)} and max drawdown ${percent(best.metrics?.maxDrawdown)}.` : "");
+        setText("btConclusion", best ? `${versionLabel(selectedDashboardVersion())}: current sample winner by Sharpe is ${best.name} with Sharpe ${number(best.metrics?.sharpe)} and max drawdown ${percent(best.metrics?.maxDrawdown)}.` : "");
 
-        const holdings = Object.entries(v1?.latestRebalance?.weights || {})
+        const holdings = Object.entries(best?.latestRebalance?.weights || {})
           .filter(([, weight]) => Number.isFinite(weight) && weight > 0)
           .sort((a, b) => b[1] - a[1]);
         const target = document.getElementById("btHoldings");
@@ -3328,8 +3338,24 @@
           .filter(item => item?.name && Array.isArray(item.rebalances) && item.rebalances.length);
       }
 
+      let dashboardVersionState = "v35";
+
       function selectedDashboardVersion() {
-        return document.getElementById("dashboardVersionSelect")?.value || "v35";
+        return dashboardVersionState;
+      }
+
+      function syncDashboardVersionControls() {
+        document.querySelectorAll("[data-dashboard-version-select]").forEach(select => {
+          if (select.value !== dashboardVersionState) select.value = dashboardVersionState;
+        });
+      }
+
+      function setDashboardVersion(version) {
+        dashboardVersionState = version === "v4" ? "v4" : "v35";
+        syncDashboardVersionControls();
+        const forwardVersion = document.getElementById("forwardVersionSelect");
+        if (forwardVersion) forwardVersion.value = dashboardVersionState;
+        renderRiskdeskBacktests();
       }
 
       function selectedForwardVersion() {
@@ -4204,9 +4230,8 @@
         }
       }
       function renderApprovalScoreboard() {
-        const training = parseEmbeddedData("v123TrainingResults");
         const allBacktestData = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), selectedDashboardVersion());
-        if (!training) return;
+        if (!allBacktestData) return;
         const allComparable = [...(allBacktestData?.coreModels || []), ...(allBacktestData?.strategies || [])];
         const spyBenchmark = (allBacktestData?.benchmarks || []).find(item => item.name === "SPY Benchmark");
         const monthlyReturns = item => Array.isArray(item?.monthly) ? item.monthly.slice(1).map((row, index) => row.nav / item.monthly[index].nav - 1).filter(Number.isFinite) : [];
@@ -4226,36 +4251,32 @@
           const informationRatio = trackingError ? activeReturn / trackingError : 0;
           return [item.name, { activeReturn, informationRatio }];
         }));
-        const rowsBySharpe = (training.models || [])
+        const rowsBySharpe = allComparable
           .map(model => {
-            const validation = model.splitResults?.validation || {};
-            const test = model.splitResults?.test || {};
-            const validationSharpe = Number(validation.sharpe);
-            const testSharpe = Number(test.sharpe);
-            const fullSharpe = Number(model.fullSample?.sharpe);
+            const currentSharpe = Number(model.metrics?.sharpe ?? model.fullSample?.sharpe);
+            const drawdown = Number(model.metrics?.maxDrawdown ?? model.fullSample?.maxDrawdown);
             const activeStats = activeStatsByName.get(model.name) || { activeReturn: NaN, informationRatio: NaN };
-            const decision = validationSharpe >= 1.25 && testSharpe >= .75 && activeStats.informationRatio > 0
+            const decision = currentSharpe >= 1.25 && activeStats.informationRatio > 0
               ? "Activate"
-              : validationSharpe >= .85
+              : currentSharpe >= .85
                 ? "Tune"
-                : validationSharpe >= .50
+                : currentSharpe >= .50
                   ? "Watch"
                   : "Reject";
-            const reason = `Sharpe Ratio ranks the strategy; SPY Active IR ${number(activeStats.informationRatio)} checks whether it adds value beyond broad-market beta.`;
-            return { model, validationSharpe, testSharpe, fullSharpe, activeReturn: activeStats.activeReturn, informationRatio: activeStats.informationRatio, decision, reason };
+            const reason = `${versionLabel(selectedDashboardVersion())} ranking. Sharpe ${number(currentSharpe)}, max drawdown ${percent(drawdown)}, SPY Active IR ${number(activeStats.informationRatio)}.`;
+            return { model, currentSharpe, drawdown, activeReturn: activeStats.activeReturn, informationRatio: activeStats.informationRatio, decision, reason };
           })
-          .filter(item => Number.isFinite(item.validationSharpe))
-          .sort((left, right) => right.validationSharpe - left.validationSharpe);
-        setText("approvalStatus", `${rowsBySharpe.length} ranked by Sharpe`);
+          .filter(item => Number.isFinite(item.currentSharpe))
+          .sort((left, right) => right.currentSharpe - left.currentSharpe);
+        setText("approvalStatus", `${versionLabel(selectedDashboardVersion())} / ${rowsBySharpe.length} ranked by current-version Sharpe`);
         const approvalRows = document.getElementById("approvalRows");
         if (approvalRows) {
           approvalRows.innerHTML = rowsBySharpe.map((item, index) => {
-            const maxDrawdown = Number(item.model.fullSample?.maxDrawdown);
             return `
               <tr>
                 <td>${index + 1}</td>
-                <td><strong>${escapeHtml(item.model.name)}</strong><br><small>${escapeHtml(item.model.group || "Research")}</small></td>
-                <td class="num">${number(item.validationSharpe)}</td>
+                <td><strong>${escapeHtml(item.model.name)}</strong><br><small>${escapeHtml(item.model.group || "Research")} / ${escapeHtml(versionLabel(selectedDashboardVersion()))}</small></td>
+                <td class="num">${number(item.currentSharpe)}</td>
                 <td><span class="pill ${decisionClass(item.decision)}">${escapeHtml(item.decision)}</span></td>
                 <td class="num">${number(item.informationRatio)}</td>
                 <td>${escapeHtml(item.reason)}</td>
@@ -4266,6 +4287,7 @@
       }
 
       function renderRiskdeskBacktests() {
+        syncDashboardVersionControls();
         const all = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), selectedDashboardVersion());
         if (!all) return;
         const v1 = itemByName(all, "V1 Momentum-Vol Research Model") || all.coreModels?.[0];
@@ -4294,10 +4316,8 @@
         renderForwardSignals();
       }
 
-      document.getElementById("dashboardVersionSelect")?.addEventListener("change", () => {
-        const forwardVersion = document.getElementById("forwardVersionSelect");
-        if (forwardVersion) forwardVersion.value = selectedDashboardVersion();
-        renderRiskdeskBacktests();
+      document.querySelectorAll("[data-dashboard-version-select]").forEach(select => {
+        select.addEventListener("change", event => setDashboardVersion(event.target.value));
       });
 
       if (document.readyState === "loading") {
