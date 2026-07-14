@@ -1,15 +1,29 @@
 import fs from "node:fs/promises";
 
-const symbols = [
-  "SPY", "QQQ", "IWM", "EFA", "EEM", "EWJ", "EWZ", "SHY", "IEF", "TLT", "LQD", "HYG",
-  "GLD", "DBC", "VNQ", "IGF", "MTUM", "QUAL", "USMV", "VTV", "XLK", "XLF", "XLV", "XLE"
-];
-
 const root = new URL("../", import.meta.url);
-const htmlPath = new URL("outputs/riskdesk.html", root);
-const jsonPath = new URL("outputs/data/public-market-snapshot.json", root);
+async function firstExisting(candidates) {
+  for (const candidate of candidates) {
+    try {
+      await fs.access(candidate);
+      return candidate;
+    } catch {}
+  }
+  throw new Error(`None of these files exist: ${candidates.map(item => item.pathname).join(", ")}`);
+}
+const htmlPath = await firstExisting([
+  new URL("outputs/riskdesk.html", root),
+  new URL("riskdesk.html", root),
+  new URL("index.html", root)
+]);
+const cacheRoot = new URL(`file:///${(process.env.RISKDESK_MARKET_CACHE || "D:/RiskDesk_Research/market-data").replaceAll("\\", "/").replace(/\/?$/, "/")}`);
+const jsonPath = new URL("public-market-snapshot-full.json", cacheRoot);
+const repoOutputJsonPath = new URL("outputs/data/public-market-snapshot.json", root);
+const slimJsonPath = new URL("data/public-market-snapshot.json", root);
+const universePath = new URL("data/global-500-universe.json", root);
 const markerStart = "<!-- PUBLIC_MARKET_SNAPSHOT_START -->";
 const markerEnd = "<!-- PUBLIC_MARKET_SNAPSHOT_END -->";
+const universe = JSON.parse(await fs.readFile(universePath, "utf8"));
+const symbols = [...new Set([...(universe.stockSymbols || []), ...(universe.riskFactorSymbols || [])])];
 
 async function fetchJSON(url) {
   const response = await fetch(url, { headers: { "User-Agent": "RiskDesk research dashboard" } });
@@ -21,6 +35,11 @@ async function fetchText(url) {
   const response = await fetch(url, { headers: { "User-Agent": "RiskDesk research dashboard" } });
   if (!response.ok) throw new Error(`${response.status} ${url}`);
   return response.text();
+}
+
+function cacheFile(symbol) {
+  const safe = symbol.replace(/[^A-Z0-9.-]/gi, "_");
+  return new URL(`histories/${safe}.json`, cacheRoot);
 }
 
 function round(value, digits = 4) {
@@ -50,7 +69,14 @@ function maxDrawdown(values) {
 }
 
 async function loadAsset(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=10y&interval=1d&events=div%2Csplits`;
+  const file = cacheFile(symbol);
+  if (process.env.RISKDESK_REFRESH_CACHE !== "1") {
+    try {
+      const cached = JSON.parse(await fs.readFile(file, "utf8"));
+      if (cached?.daily?.length >= 240) return cached;
+    } catch {}
+  }
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=10y&interval=1d&events=div%2Csplits`;
   const payload = await fetchJSON(url);
   const result = payload.chart?.result?.[0];
   if (!result) throw new Error(`No chart result for ${symbol}`);
@@ -65,7 +91,7 @@ async function loadAsset(symbol) {
   const twelveMonthBase = closes.at(-253) ?? closes[0];
   const skipMonthClose = closes.at(-22) ?? latest;
   const recent = closes.slice(-756);
-  return {
+  const asset = {
     currency: result.meta?.currency || "USD",
     exchange: result.meta?.exchangeName || "",
     latestDate: daily.at(-1)?.[0] || null,
@@ -74,8 +100,12 @@ async function loadAsset(symbol) {
     momentum12_1: round(skipMonthClose / twelveMonthBase - 1),
     volatility60d: round(volatility(closes.slice(-61))),
     maxDrawdown3y: round(maxDrawdown(recent)),
-    daily
+    daily,
+    cachedAt: new Date().toISOString()
   };
+  await fs.mkdir(new URL("histories/", cacheRoot), { recursive: true });
+  await fs.writeFile(file, JSON.stringify(asset));
+  return asset;
 }
 
 async function loadFred(series) {
@@ -85,7 +115,18 @@ async function loadFred(series) {
   return latest ? { date: latest[0], value: Number(latest[1]) } : null;
 }
 
-const settled = await Promise.allSettled(symbols.map(loadAsset));
+async function mapLimit(items, limit, mapper) {
+  const results = [];
+  for (let index = 0; index < items.length; index += limit) {
+    const chunk = items.slice(index, index + limit);
+    const settled = await Promise.allSettled(chunk.map(mapper));
+    results.push(...settled);
+    console.log(`Loaded batch ${Math.min(index + limit, items.length)}/${items.length}`);
+  }
+  return results;
+}
+
+const settled = await mapLimit(symbols, Number(process.env.RISKDESK_FETCH_CONCURRENCY || 12), loadAsset);
 const assets = {};
 const errors = [];
 settled.forEach((result, index) => {
@@ -103,6 +144,17 @@ const macroPairs = await Promise.all([
 const snapshot = {
   source: "Yahoo Finance chart endpoint; Federal Reserve Bank of St. Louis FRED",
   generatedAt: new Date().toISOString(),
+  cacheRoot: cacheRoot.pathname,
+  universe: {
+    primary: universe.label,
+    universeId: universe.universeId,
+    methodology: universe.methodology,
+    targetAllocation: universe.targetAllocation,
+    actualAllocation: universe.actualAllocation,
+    stockSymbols: universe.stockSymbols,
+    riskFactorSymbols: universe.riskFactorSymbols,
+    note: "Stocks are the investable strategy universe. ETFs are retained separately as risk factors, hedges, and benchmarks."
+  },
   assets,
   macro: {
     treasury10y: macroPairs[0],
@@ -112,15 +164,32 @@ const snapshot = {
   },
   errors
 };
+const slimSnapshot = {
+  ...snapshot,
+  assets: Object.fromEntries(Object.entries(assets).map(([symbol, asset]) => [symbol, {
+    currency: asset.currency,
+    exchange: asset.exchange,
+    latestDate: asset.latestDate,
+    latest: asset.latest,
+    change1m: asset.change1m,
+    momentum12_1: asset.momentum12_1,
+    volatility60d: asset.volatility60d,
+    maxDrawdown3y: asset.maxDrawdown3y
+  }]))
+};
 
+await fs.mkdir(cacheRoot, { recursive: true });
 await fs.mkdir(new URL("outputs/data/", root), { recursive: true });
 await fs.writeFile(jsonPath, JSON.stringify(snapshot, null, 2));
+await fs.writeFile(repoOutputJsonPath, JSON.stringify(slimSnapshot, null, 2));
+await fs.writeFile(slimJsonPath, JSON.stringify(slimSnapshot, null, 2));
 
 let html = await fs.readFile(htmlPath, "utf8");
-const embedded = `${markerStart}\n<script type="application/json" id="publicMarketSnapshot">${JSON.stringify(snapshot).replaceAll("</", "<\\/")}</script>\n${markerEnd}`;
+const embedded = `${markerStart}\n<script type="application/json" id="publicMarketSnapshot">${JSON.stringify(slimSnapshot).replaceAll("</", "<\\/")}</script>\n${markerEnd}`;
 const existing = new RegExp(`${markerStart}[\\s\\S]*?${markerEnd}`);
 html = existing.test(html) ? html.replace(existing, embedded) : html.replace("  <script>", `  ${embedded}\n\n  <script>`);
 await fs.writeFile(htmlPath, html);
 
-console.log(`Embedded ${Object.keys(assets).length}/${symbols.length} ETF histories; ${errors.length} errors.`);
+console.log(`Loaded ${Object.keys(assets).length}/${symbols.length} Global 500 assets; ${errors.length} errors.`);
+console.log(`Cache: ${cacheRoot.pathname}`);
 console.log(`Snapshot: ${jsonPath.pathname}`);

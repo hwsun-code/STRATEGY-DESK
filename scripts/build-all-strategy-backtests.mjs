@@ -1,7 +1,24 @@
 import fs from "node:fs/promises";
 
 const root = new URL("../", import.meta.url);
-const snapshot = JSON.parse(await fs.readFile(new URL("outputs/data/public-market-snapshot.json", root), "utf8"));
+const cacheRoot = new URL(`file:///${(process.env.RISKDESK_MARKET_CACHE || "D:/RiskDesk_Research/market-data").replaceAll("\\", "/").replace(/\/?$/, "/")}`);
+async function firstExisting(candidates) {
+  for (const candidate of candidates) {
+    try {
+      await fs.access(candidate);
+      return candidate;
+    } catch {}
+  }
+  throw new Error(`None of these files exist: ${candidates.map(item => item.pathname).join(", ")}`);
+}
+async function readSnapshot() {
+  try {
+    return JSON.parse(await fs.readFile(new URL("public-market-snapshot-full.json", cacheRoot), "utf8"));
+  } catch {
+    return JSON.parse(await fs.readFile(new URL("outputs/data/public-market-snapshot.json", root), "utf8"));
+  }
+}
+const snapshot = await readSnapshot();
 let researchParams = {};
 try {
   researchParams = JSON.parse(await fs.readFile(new URL("research_params.json", root), "utf8"));
@@ -12,7 +29,7 @@ const params = {
   v1: {
     lookbackDays: researchParams.v1?.lookback_days ?? 252,
     skipDays: researchParams.v1?.skip_days ?? 21,
-    topN: researchParams.v1?.top_n ?? 3,
+    topN: researchParams.v1?.top_n ?? 30,
     targetVol: researchParams.v1?.target_vol ?? .10,
     maxGross: researchParams.v1?.max_gross ?? 2,
   },
@@ -27,7 +44,7 @@ const params = {
     rounds: researchParams.v3?.rounds ?? 45,
     learningRate: researchParams.v3?.learning_rate ?? .06,
     lambda: researchParams.v3?.lambda ?? 2,
-    topN: researchParams.v3?.top_n ?? 3,
+    topN: researchParams.v3?.top_n ?? 30,
     targetVol: researchParams.v3?.target_vol ?? .10,
     maxGross: researchParams.v3?.max_gross ?? 2,
   }
@@ -51,10 +68,10 @@ function weekKey(dateString) {
   return date.toISOString().slice(0, 10);
 }
 
-const growthStocks = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOG", "META", "TSLA", "AVGO", "NFLX", "CRM", "AMD"].filter(symbol => prices[symbol]);
-const qualityStocks = ["MSFT", "AAPL", "COST", "LLY", "MA", "V", "UNH", "WMT"].filter(symbol => prices[symbol]);
-const defensiveStocks = ["COST", "WMT", "UNH", "LLY", "HD", "ORCL"].filter(symbol => prices[symbol]);
-const cyclicalStocks = ["JPM", "HD", "TSLA", "AMD", "AVGO", "CRM"].filter(symbol => prices[symbol]);
+const growthStocks = symbols;
+const qualityStocks = symbols;
+const defensiveStocks = symbols;
+const cyclicalStocks = symbols;
 const cashProxy = prices.IEF ? "IEF" : "SPY";
 const riskHedges = ["IEF", "TLT", "GLD"].filter(symbol => prices[symbol]);
 
@@ -219,13 +236,13 @@ const v1 = runStrategy(
 const customStrategies = [
   runStrategy("S1 AI Capex Momentum+", index => {
     const aiRisk = .6 * factorMomentum("QQQ", index, 126) + .4 * factorMomentum("XLK", index, 126);
-    const selected = topBy(growthStocks, symbol => .45 * qualityProxy(symbol, index) + .35 * momentum(symbol, index, 63) + .30 * jpmAIScore(symbol, index, { aiInfra: .22, crowding: .12, liquidity: .10 }) + .15 * aiRisk, 5).map(item => item.symbol);
+    const selected = topBy(growthStocks, symbol => .45 * qualityProxy(symbol, index) + .35 * momentum(symbol, index, 63) + .30 * jpmAIScore(symbol, index, { aiInfra: .22, crowding: .12, liquidity: .10 }) + .15 * aiRisk, 28).map(item => item.symbol);
     const gross = aiRisk > 0 ? .92 : .68;
     return { ...jpmTargetWeights(selected, index, { gross, targetVol: .12, maxGross: 1.7 }), ...hedgeSleeve(aiRisk > 0 ? .08 : .22) };
   }, { note: "Version 3.5 JP Morgan AI infrastructure strategy: capex momentum plus AI factor confirmation, liquidity/risk penalty, volatility targeting and hedge sleeve.", group: "Custom AI" }),
   runStrategy("S2 Quality Growth Barbell+", index => {
-    const qualityLeg = Object.fromEntries(topBy(qualityStocks, symbol => .65 * qualityProxy(symbol, index) + .35 * jpmAIScore(symbol, index, { quality: .30, lowVol: .18 }), 5, false).map(item => [item.symbol, 1]));
-    const growthLeg = Object.fromEntries(topBy(growthStocks, symbol => .45 * momentum(symbol, index, 126) + .25 * momentum(symbol, index, 63) + .25 * jpmAIScore(symbol, index, { quality: .22, aiInfra: .12 }) - .15 * annualVol(symbol, index, 60), 4).map(item => [item.symbol, 1]));
+    const qualityLeg = Object.fromEntries(topBy(qualityStocks, symbol => .65 * qualityProxy(symbol, index) + .35 * jpmAIScore(symbol, index, { quality: .30, lowVol: .18 }), 18, false).map(item => [item.symbol, 1]));
+    const growthLeg = Object.fromEntries(topBy(growthStocks, symbol => .45 * momentum(symbol, index, 126) + .25 * momentum(symbol, index, 63) + .25 * jpmAIScore(symbol, index, { quality: .22, aiInfra: .12 }) - .15 * annualVol(symbol, index, 60), 14).map(item => [item.symbol, 1]));
     const lowVolHedge = prices.USMV && annualVol("SPY", index, 20) > .20 ? .18 : .08;
     return { ...normalize(qualityLeg, .52), ...normalize(growthLeg, .40), USMV: prices.USMV ? lowVolHedge : 0 };
   }, { note: "Version 3.5 quality-growth barbell: quality proxy, AI factor score, growth acceleration, low-vol hedge that expands during market stress.", group: "Custom AI" }),
@@ -236,7 +253,7 @@ const customStrategies = [
       const vol = annualVol(symbol, index, 20);
       const factorCrowding = Math.max(0, factorMomentum("MTUM", index, 21));
       return .62 * trend + .30 * jpmAIScore(symbol, index, { crowding: .22, liquidity: .12 }) + .20 * trendConfirm(symbol, index) - .75 * Math.max(0, shortRun) - .40 * Math.max(0, vol - .28) - .28 * factorCrowding;
-    }, 5).map(item => item.symbol);
+    }, 30).map(item => item.symbol);
     return jpmTargetWeights(ranked, index, { targetVol: .10, maxGross: 1.45 });
   }, { note: "Version 3.5 anti-crowding momentum: JP Morgan-style crowding, liquidity and one-month chase penalties.", group: "Custom Risk" }),
   runStrategy("S4 Low-Vol Alpha Shield+", index => {
@@ -244,24 +261,26 @@ const customStrategies = [
       .map(symbol => ({ symbol, score: .42 * momentum(symbol, index, 126) + .32 * jpmAIScore(symbol, index, { lowVol: .28, quality: .20, crowding: .10 }) + .20 * trendConfirm(symbol, index) - .72 * annualVol(symbol, index, 60) + .22 * Math.max(drawdown(symbol, index, 126), -.25) }))
       .filter(item => Number.isFinite(item.score) && item.score > -.05)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 6)
+      .slice(0, 30)
       .map(item => item.symbol);
     return jpmTargetWeights(selected, index, { targetVol: .085, maxGross: 1.28 });
   }, { note: "Version 3.5 low-vol alpha shield: medium trend plus quality, drawdown, low-vol and crowding-aware JP Morgan controls.", group: "Custom Risk" }),
   runStrategy("S5 Regime-Switch Equity Hedge+", index => {
     const score = riskOnScore(index);
     const riskOn = score > .15;
-    const selected = topBy(symbols, symbol => .55 * momentum(symbol, index, 126) + .45 * jpmAIScore(symbol, index, { regime: .24, liquidity: .18 }), 5).map(item => item.symbol);
-    return riskOn ? { ...jpmTargetWeights(selected, index, { gross: .82, targetVol: .11, maxGross: 1.45 }), ...hedgeSleeve(.18) } : { ...jpmTargetWeights(qualityStocks, index, { gross: .38, targetVol: .07, maxGross: 1 }), ...hedgeSleeve(.62) };
+    const selected = topBy(symbols, symbol => .55 * momentum(symbol, index, 126) + .45 * jpmAIScore(symbol, index, { regime: .24, liquidity: .18 }), 30).map(item => item.symbol);
+    const defensive = topBy(qualityStocks, symbol => qualityProxy(symbol, index) + .35 * jpmAIScore(symbol, index, { lowVol: .24, quality: .22 }), 30, false).map(item => item.symbol);
+    return riskOn ? { ...jpmTargetWeights(selected, index, { gross: .82, targetVol: .11, maxGross: 1.45 }), ...hedgeSleeve(.18) } : { ...jpmTargetWeights(defensive, index, { gross: .38, targetVol: .07, maxGross: 1 }), ...hedgeSleeve(.62) };
   }, { note: "Version 3.5 regime hedge: JP Morgan macro regime, liquidity, credit and volatility stress decide equity/hedge budget.", group: "Custom Macro" }),
   runStrategy("S6 Credit-Liquidity Accelerator+", index => {
     const creditSpreadProxy = factorMomentum("HYG", index, 126) - factorMomentum("IEF", index, 126);
     const creditRiskOn = creditSpreadProxy > 0 && annualVol("HYG", index, 60) < annualVol("SPY", index, 60) && riskOnScore(index) > 0;
-    const selected = topBy(cyclicalStocks.concat(growthStocks), symbol => .55 * momentum(symbol, index, 126) + .45 * jpmAIScore(symbol, index, { liquidity: .24, regime: .18 }), 5).map(item => item.symbol);
-    return creditRiskOn ? jpmTargetWeights(selected, index, { targetVol: .125, maxGross: 1.75 }) : { ...jpmTargetWeights(qualityStocks, index, { gross: .48, targetVol: .075, maxGross: 1 }), ...hedgeSleeve(.52) };
+    const selected = topBy([...new Set(cyclicalStocks.concat(growthStocks))], symbol => .55 * momentum(symbol, index, 126) + .45 * jpmAIScore(symbol, index, { liquidity: .24, regime: .18 }), 30).map(item => item.symbol);
+    const defensive = topBy(qualityStocks, symbol => qualityProxy(symbol, index) + .35 * jpmAIScore(symbol, index, { lowVol: .24, quality: .22 }), 30, false).map(item => item.symbol);
+    return creditRiskOn ? jpmTargetWeights(selected, index, { targetVol: .125, maxGross: 1.75 }) : { ...jpmTargetWeights(defensive, index, { gross: .48, targetVol: .075, maxGross: 1 }), ...hedgeSleeve(.52) };
   }, { note: "Version 3.5 credit-liquidity accelerator: high-yield/Treasury proxy plus JP Morgan liquidity and regime score before increasing beta.", group: "Custom Macro" }),
   runStrategy("S7 Revision-Proxy Growth Rank+", index => {
-    const selected = topBy(symbols, symbol => .35 * momentum(symbol, index, 63) + .25 * momentum(symbol, index, 126) + .22 * jpmAIScore(symbol, index, { acceleration: .25, quality: .18, aiInfra: .12 }) + .12 * momentum(symbol, index, 21) - .25 * Math.max(0, annualVol(symbol, index, 20) - annualVol(symbol, index, 120)) + .10 * trendConfirm(symbol, index), 6).map(item => item.symbol);
+    const selected = topBy(symbols, symbol => .35 * momentum(symbol, index, 63) + .25 * momentum(symbol, index, 126) + .22 * jpmAIScore(symbol, index, { acceleration: .25, quality: .18, aiInfra: .12 }) + .12 * momentum(symbol, index, 21) - .25 * Math.max(0, annualVol(symbol, index, 20) - annualVol(symbol, index, 120)) + .10 * trendConfirm(symbol, index), 28).map(item => item.symbol);
     return jpmTargetWeights(selected, index, { targetVol: .115, maxGross: 1.6 });
   }, { note: "Version 3.5 revision proxy: acceleration, AI factor score, quality and volatility stability proxy analyst-revision behavior.", group: "Custom AI" }),
   runStrategy("S8 Trend-Guarded Reversion+", index => {
@@ -269,7 +288,7 @@ const customStrategies = [
       .map(symbol => ({ symbol, score: -.85 * zScore(symbol, index, 20) + .25 * momentum(symbol, index, 126) + .25 * jpmAIScore(symbol, index, { lowVol: .20, crowding: .15 }) + .20 * trendConfirm(symbol, index) - .24 * annualVol(symbol, index, 20) }))
       .filter(item => item.score > 0 && prices[item.symbol][index] > movingAverage(item.symbol, index, 200) && drawdown(item.symbol, index, 63) > -.16)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
+      .slice(0, 32)
       .map(item => item.symbol);
     return selected.length ? jpmTargetWeights(selected, index, { targetVol: .09, maxGross: 1.25 }) : { [cashProxy]: 1 };
   }, { note: "Version 3.5 guarded reversion: pullback entries require trend, drawdown, volatility and JP Morgan crowding controls.", group: "Custom Tactical" }),
@@ -277,21 +296,21 @@ const customStrategies = [
     const sectorSet = ["XLK", "XLF", "XLV", "XLE", "QUAL", "MTUM"].filter(symbol => prices[symbol]);
     const breadth = sectorSet.filter(symbol => prices[symbol][index] > movingAverage(symbol, index, 100)).length / Math.max(1, sectorSet.length);
     const factorLeader = sectorSet.sort((a, b) => factorMomentum(b, index, 126) - factorMomentum(a, index, 126))[0];
-    const selected = breadth > .5 ? topBy(symbols, symbol => .52 * momentum(symbol, index, 126) + .30 * jpmAIScore(symbol, index, { regime: .18, liquidity: .18 }) + .12 * factorMomentum(factorLeader, index, 63), 6).map(item => item.symbol) : topBy(qualityStocks.concat(defensiveStocks), symbol => qualityProxy(symbol, index) + .35 * jpmAIScore(symbol, index, { lowVol: .24, quality: .22 }), 5).map(item => item.symbol);
+    const selected = breadth > .5 ? topBy(symbols, symbol => .52 * momentum(symbol, index, 126) + .30 * jpmAIScore(symbol, index, { regime: .18, liquidity: .18 }) + .12 * factorMomentum(factorLeader, index, 63), 30).map(item => item.symbol) : topBy([...new Set(qualityStocks.concat(defensiveStocks))], symbol => qualityProxy(symbol, index) + .35 * jpmAIScore(symbol, index, { lowVol: .24, quality: .22 }), 32).map(item => item.symbol);
     return jpmTargetWeights(selected, index, { gross: breadth > .5 ? .95 : .70, targetVol: breadth > .5 ? .12 : .08, maxGross: 1.5 });
   }, { note: "Version 3.5 sector-breadth rotation: ETF breadth/factor leadership plus JP Morgan regime, liquidity and quality scoring.", group: "Custom Macro" }),
   runStrategy("S10 Defensive Growth Stabilizer+", index => {
-    const selected = topBy([...new Set(qualityStocks.concat(defensiveStocks))], symbol => .48 * qualityProxy(symbol, index) + .25 * jpmAIScore(symbol, index, { quality: .28, lowVol: .24, crowding: .10 }) + .20 * momentum(symbol, index, 126) - .22 * annualVol(symbol, index, 60), 6).map(item => item.symbol);
+    const selected = topBy([...new Set(qualityStocks.concat(defensiveStocks))], symbol => .48 * qualityProxy(symbol, index) + .25 * jpmAIScore(symbol, index, { quality: .28, lowVol: .24, crowding: .10 }) + .20 * momentum(symbol, index, 126) - .22 * annualVol(symbol, index, 60), 35).map(item => item.symbol);
     const stressed = annualVol("SPY", index, 20) > .22 || drawdown("SPY", index, 63) < -.06;
     return stressed ? { ...jpmTargetWeights(selected, index, { gross: .66, targetVol: .075, maxGross: 1 }), ...hedgeSleeve(.34) } : jpmTargetWeights(selected, index, { targetVol: .095, maxGross: 1.28 });
   }, { note: "Version 3.5 defensive stabilizer: quality, low-volatility, crowding control and volatility stress hedge.", group: "Custom Risk" }),
   runStrategy("S11 Tail-Risk Shock Absorber+", index => {
     const shock = drawdown("SPY", index, 126) < -.1 || annualVol("SPY", index, 20) > .28 || factorMomentum("HYG", index, 21) < -.04 || riskOnScore(index) < -.25;
-    const selected = topBy(qualityStocks, symbol => .40 * momentum(symbol, index, 126) + .60 * jpmAIScore(symbol, index, { lowVol: .28, quality: .24, regime: .18 }), 5).map(item => item.symbol);
+    const selected = topBy(qualityStocks, symbol => .40 * momentum(symbol, index, 126) + .60 * jpmAIScore(symbol, index, { lowVol: .28, quality: .24, regime: .18 }), 30).map(item => item.symbol);
     return shock ? { ...jpmTargetWeights(selected, index, { gross: .35, targetVol: .06, maxGross: 1 }), ...hedgeSleeve(.65) } : { ...jpmTargetWeights(selected, index, { gross: .82, targetVol: .10, maxGross: 1.38 }), SPY: prices.SPY ? .18 : 0 };
   }, { note: "Version 3.5 tail-risk absorber: JP Morgan regime, low-vol and quality score before shifting into hedges under shock.", group: "Custom Risk" }),
   runStrategy("S12 Adaptive Volatility Compounder+", index => {
-    const selected = topBy(symbols, symbol => .38 * momentum(symbol, index, 126) + .25 * momentum(symbol, index, 252, 21) + .30 * jpmAIScore(symbol, index, { regime: .18, liquidity: .16, lowVol: .16 }) - .18 * annualVol(symbol, index, 60) + .10 * trendConfirm(symbol, index), 6).map(item => item.symbol);
+    const selected = topBy(symbols, symbol => .38 * momentum(symbol, index, 126) + .25 * momentum(symbol, index, 252, 21) + .30 * jpmAIScore(symbol, index, { regime: .18, liquidity: .16, lowVol: .16 }) - .18 * annualVol(symbol, index, 60) + .10 * trendConfirm(symbol, index), 30).map(item => item.symbol);
     const base = jpmTargetWeights(selected, index, { targetVol: .10, maxGross: 1.2 });
     const stress = annualVol("SPY", index, 60);
     const target = stress > .24 ? .07 : stress > .18 ? .095 : .13;
@@ -346,7 +365,7 @@ function covarianceMatrix(names, index, window, forecastVols) {
 function projectCapped(values, cap = .35) { let low = Math.min(...values) - cap, high = Math.max(...values); for (let iteration = 0; iteration < 80; iteration += 1) { const mid = (low + high) / 2; const total = values.reduce((sum, value) => sum + clamp(value - mid, 0, cap), 0); if (total > 1) low = mid; else high = mid; } return values.map(value => clamp(value - high, 0, cap)); }
 function optimizeMVO(mu, sigma, riskAversion, cap = .35) { let weights = Array(mu.length).fill(1 / mu.length); for (let iteration = 0; iteration < 500; iteration += 1) { const gradient = mu.map((value, i) => value - riskAversion * sigma[i].reduce((sum, covariance, j) => sum + covariance * weights[j], 0)); weights = projectCapped(weights.map((weight, i) => weight + .15 * gradient[i]), cap); } return weights; }
 
-const v2Universe = symbols.slice(0, 12);
+const v2Universe = symbols.slice(0, 30);
 const v2 = runStrategy("V2 HMM-GARCH-MVO", index => {
   const spyHistory = returns.SPY.slice(index - params.v2.historyDays + 1, index + 1);
   const hmm = fitHMM(spyHistory);
@@ -461,11 +480,16 @@ const output = {
 };
 await fs.writeFile(new URL("outputs/data/all-strategy-backtests.json", root), JSON.stringify(output, null, 2));
 
-let html = await fs.readFile(new URL("outputs/riskdesk.html", root), "utf8");
+const htmlPath = await firstExisting([
+  new URL("outputs/riskdesk.html", root),
+  new URL("riskdesk.html", root),
+  new URL("index.html", root)
+]);
+let html = await fs.readFile(htmlPath, "utf8");
 const start = "<!-- ALL_STRATEGY_BACKTESTS_START -->", end = "<!-- ALL_STRATEGY_BACKTESTS_END -->";
 const embedded = `${start}\n<script type="application/json" id="allStrategyBacktests">${JSON.stringify(output).replaceAll("</", "<\\/")}</script>\n${end}`;
 const marker = new RegExp(`${start}[\\s\\S]*?${end}`);
 html = marker.test(html) ? html.replace(marker, embedded) : html.replace("  <script>", `  ${embedded}\n\n  <script>`);
-await fs.writeFile(new URL("outputs/riskdesk.html", root), html);
+await fs.writeFile(htmlPath, html);
 
 console.log(JSON.stringify({ core: coreModels.map(item => ({ name: item.name, metrics: item.metrics, latest: item.latestRebalance })), strategies: customStrategies.map(item => ({ name: item.name, group: item.group, metrics: item.metrics })), benchmarks: benchmarks.map(item => ({ name: item.name, metrics: item.metrics })) }, null, 2));

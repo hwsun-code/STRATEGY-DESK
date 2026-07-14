@@ -120,6 +120,9 @@ const AUTOMATION_VERSIONS = [
   }
 ];
 
+const UNIVERSE_ID = "global-500-v1";
+const UNIVERSE_LABEL = "Global 500 equity universe + 26 ETF risk factors";
+
 async function historyFor(symbol) {
   try {
     const result = await fetchYahooChart(symbol, "1y", "1d");
@@ -200,7 +203,11 @@ function forecastRow({ model, symbol, weight, history, horizonDays, version, con
     marketRegime: context?.regime || "Neutral",
     marketRiskOn: context?.riskOn || 0,
     signalsUsed: version?.mode || "baseline momentum-volatility",
-    automationVersion: version?.automationVersion || "daily-v35"
+    automationVersion: version?.automationVersion || "daily-v35",
+    universeId: context?.universeId || UNIVERSE_ID,
+    universeLabel: context?.universeLabel || UNIVERSE_LABEL,
+    stockUniverseCount: context?.stockUniverseCount || null,
+    riskFactorCount: context?.riskFactorCount || null
   };
 }
 
@@ -239,6 +246,7 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
   const existingRows = await readJson(store, LEDGER_KEY, []);
   const snapshot = embeddedJson("publicMarketSnapshot") || {};
   const stockSymbols = snapshot.universe?.stockSymbols || [];
+  const riskFactorSymbols = snapshot.universe?.riskFactorSymbols || [];
   const models = modelList();
   const selectedModels = models.slice(0, 15);
   const wantedSymbols = new Set();
@@ -248,7 +256,13 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
   ["SPY", "QQQ", "TLT", "^VIX"].forEach(symbol => wantedSymbols.add(symbol));
   const histories = await Promise.all([...wantedSymbols].map(historyFor));
   const historiesBySymbol = new Map(histories.map(history => [history.symbol, history]));
-  const context = marketContext(historiesBySymbol);
+  const context = {
+    ...marketContext(historiesBySymbol),
+    universeId: UNIVERSE_ID,
+    universeLabel: UNIVERSE_LABEL,
+    stockUniverseCount: stockSymbols.length,
+    riskFactorCount: riskFactorSymbols.length
+  };
   const validation = validateRows(existingRows, historiesBySymbol);
   const newRows = [];
   for (const version of AUTOMATION_VERSIONS) {
@@ -287,6 +301,11 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
     hitRate: validation.checked ? validation.hit / validation.checked : null,
     models: selectedModels.length,
     versions: AUTOMATION_VERSIONS.map(version => version.id),
+    universeId: UNIVERSE_ID,
+    universeLabel: UNIVERSE_LABEL,
+    stockUniverseCount: stockSymbols.length,
+    riskFactorCount: riskFactorSymbols.length,
+    horizonDays: 1,
     marketRegime: context.regime,
     symbols: [...wantedSymbols],
     note: saved ? "Daily automation generated forecasts and validated due rows." : "Automation generated forecasts, but persistent cloud storage is not available yet. Use returned rows as a temporary diagnostic only."
@@ -316,7 +335,11 @@ async function automationStatus() {
       rows: versionRows.length,
       pending: versionRows.filter(row => row.actualStatus !== "Hit" && row.actualStatus !== "Miss").length,
       checked: versionChecked.length,
-      hitRate: versionChecked.length ? versionHits / versionChecked.length : null
+      hitRate: versionChecked.length ? versionHits / versionChecked.length : null,
+      universeId: versionRows.find(row => row.universeId)?.universeId || UNIVERSE_ID,
+      universeLabel: versionRows.find(row => row.universeLabel)?.universeLabel || UNIVERSE_LABEL,
+      stockUniverseCount: versionRows.find(row => row.stockUniverseCount)?.stockUniverseCount || null,
+      riskFactorCount: versionRows.find(row => row.riskFactorCount)?.riskFactorCount || null
     };
   });
   return {
@@ -324,6 +347,11 @@ async function automationStatus() {
     storage: store ? "Netlify Blobs" : "No persistent store available",
     storageError: store ? null : lastBlobError,
     latestRun: status,
+    universeId: status?.universeId || UNIVERSE_ID,
+    universeLabel: status?.universeLabel || UNIVERSE_LABEL,
+    stockUniverseCount: status?.stockUniverseCount || null,
+    riskFactorCount: status?.riskFactorCount || null,
+    horizonDays: status?.horizonDays || 1,
     ledgerRows: rows.length,
     pending,
     checked: checked.length,
