@@ -45,6 +45,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/eodhd-history"
+  to = "/.netlify/functions/eodhd-history"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
