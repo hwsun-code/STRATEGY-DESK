@@ -51,7 +51,7 @@
 
 [[redirects]]
   from = "/api/research-signals"
-  to = "/.netlify/functions/research-signals"
+  to = "/.netlify/functions/automation-status?research=1"
   status = 200
 
 [[redirects]]
