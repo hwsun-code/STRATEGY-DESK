@@ -584,6 +584,44 @@
     .feedback-table th:nth-child(8), .feedback-table td:nth-child(8),
     .feedback-table th:nth-child(9), .feedback-table td:nth-child(9) { width: 88px; }
     .feedback-table th:nth-child(10), .feedback-table td:nth-child(10) { width: 86px; }
+    .diagnostic-grid { display: grid; grid-template-columns: minmax(300px, .9fr) minmax(420px, 1.1fr); gap: 10px; }
+    .diagnostic-readout { display: grid; gap: 9px; }
+    .diagnostic-card { padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: #080b0f; }
+    .diagnostic-card span { display: block; color: var(--muted); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+    .diagnostic-card strong { display: block; margin-top: 5px; font-size: 20px; }
+    .diagnostic-card p { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .review-table { min-width: 980px; table-layout: fixed; }
+    .review-table th, .review-table td { white-space: normal; word-break: normal; overflow-wrap: anywhere; vertical-align: top; }
+    .review-table th:nth-child(1), .review-table td:nth-child(1) { width: 92px; }
+    .review-table th:nth-child(2), .review-table td:nth-child(2) { width: 190px; }
+    .review-table th:nth-child(3), .review-table td:nth-child(3) { width: 130px; }
+    .review-table th:nth-child(4), .review-table td:nth-child(4) { width: 110px; }
+    .edge-table { min-width: 1180px; table-layout: fixed; }
+    .edge-table th, .edge-table td { white-space: normal; word-break: normal; overflow-wrap: anywhere; vertical-align: top; }
+    .edge-table th:nth-child(1), .edge-table td:nth-child(1) { width: 54px; }
+    .edge-table th:nth-child(2), .edge-table td:nth-child(2) { width: 82px; }
+    .edge-table th:nth-child(3), .edge-table td:nth-child(3) { width: 185px; }
+    .edge-table th:nth-child(4), .edge-table td:nth-child(4),
+    .edge-table th:nth-child(5), .edge-table td:nth-child(5),
+    .edge-table th:nth-child(6), .edge-table td:nth-child(6),
+    .edge-table th:nth-child(7), .edge-table td:nth-child(7),
+    .edge-table th:nth-child(8), .edge-table td:nth-child(8) { width: 88px; }
+    .magnitude-table { min-width: 1040px; table-layout: fixed; }
+    .magnitude-table th, .magnitude-table td { white-space: normal; word-break: normal; overflow-wrap: normal; vertical-align: middle; }
+    .magnitude-table th:nth-child(1), .magnitude-table td:nth-child(1) { width: 72px; }
+    .magnitude-table th:nth-child(2), .magnitude-table td:nth-child(2) { width: 330px; }
+    .magnitude-table th:nth-child(3), .magnitude-table td:nth-child(3) { width: 74px; }
+    .magnitude-table th:nth-child(4), .magnitude-table td:nth-child(4),
+    .magnitude-table th:nth-child(5), .magnitude-table td:nth-child(5),
+    .magnitude-table th:nth-child(6), .magnitude-table td:nth-child(6),
+    .magnitude-table th:nth-child(7), .magnitude-table td:nth-child(7) { width: 112px; }
+    .magnitude-table .strategy-name { display: block; max-width: 310px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .calibration-table { min-width: 720px; table-layout: fixed; }
+    .calibration-table th, .calibration-table td { white-space: normal; vertical-align: middle; }
+    .terminal-log { display: grid; gap: 7px; max-height: 270px; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: #03070b; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+    .terminal-log div { display: grid; grid-template-columns: 76px 78px minmax(0, 1fr); gap: 8px; align-items: start; color: var(--muted); }
+    .terminal-log strong { color: #8ddcff; text-transform: uppercase; font-size: 11px; }
+    .terminal-log span { color: var(--ink); }
     .mini-muted { color: var(--muted); font-size: 12px; line-height: 1.55; }
     .strategy-matrix { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 9px; margin: 14px 0; }
     .strategy-capability { padding: 14px; border: 1px solid var(--line); border-radius: 7px; background: rgba(5,8,11,.9); transition: transform .22s ease, border-color .22s ease, background .22s ease; }
@@ -1236,8 +1274,8 @@
             <div class="live-metrics">
               <div class="live-stat"><span>Forecast Date</span><strong id="forwardDate">--</strong></div>
               <div class="live-stat"><span>Expected Strategy Return</span><strong id="forwardExpectedReturn">--</strong></div>
-              <div class="live-stat"><span>Buy Signals</span><strong id="forwardBuyCount">--</strong></div>
-              <div class="live-stat"><span>Pending Checks</span><strong id="forwardPendingCount">--</strong></div>
+              <div class="live-stat"><span>Actionable Signals</span><strong id="forwardBuyCount">--</strong></div>
+              <div class="live-stat"><span>Preview Pending</span><strong id="forwardPendingCount">--</strong></div>
               <div class="live-stat"><span>Data Mode</span><strong id="forwardDataMode">No-key</strong></div>
               <div class="live-stat"><span>Signal Formula</span><strong id="forwardFormulaTag">Momentum + Risk</strong></div>
               <div class="live-stat"><span>Auto Ledger</span><strong id="forwardAutoLedger">Checking</strong></div>
@@ -1266,6 +1304,43 @@
               <div class="table-wrap">
                 <div class="panel-title"><span>Strategy Accuracy</span><span>Top and weak models</span></div>
                 <table><thead><tr><th>Version</th><th>Strategy</th><th class="num">Checked</th><th class="num">Hit Rate</th><th>Readout</th></tr></thead><tbody id="accuracyStrategyRows"></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel table-wrap">
+            <div class="panel-title"><span>Actionable Edge Signals</span><span id="edgeSignalStatus">Predicted return after cost and risk buffer</span></div>
+            <table class="edge-table">
+              <thead><tr><th>Rank</th><th>Symbol</th><th>Strategy</th><th class="num">Pred Ret</th><th class="num">Cost+Risk</th><th class="num">Edge</th><th class="num">Confidence</th><th class="num">Paper Size</th><th>Action</th></tr></thead>
+              <tbody id="edgeSignalRows"></tbody>
+            </table>
+          </div>
+
+          <div class="panel table-wrap">
+            <div class="panel-title"><span>Return &amp; Price Forecast Accuracy</span><span>Magnitude accuracy, separate from direction hit rate</span></div>
+            <table class="magnitude-table"><thead><tr><th>Version</th><th>Strategy</th><th class="num">Checked</th><th class="num">Dir Hit</th><th class="num">Return MAE</th><th class="num">Return RMSE</th><th class="num">Price MAE</th></tr></thead><tbody id="forecastMagnitudeRows"></tbody></table>
+          </div>
+
+          <div class="panel table-wrap">
+            <div class="panel-title"><span>Confidence Calibration</span><span>Brier-style probability check</span></div>
+            <table class="calibration-table"><thead><tr><th>Version</th><th>Confidence Bucket</th><th class="num">Checked</th><th class="num">Avg Confidence</th><th class="num">Actual Hit</th><th class="num">Brier</th></tr></thead><tbody id="calibrationRows"></tbody></table>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title"><span>System Event Log</span><span>Automation, data, validation and review events</span></div>
+            <div class="terminal-log" id="systemEventLog"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title"><span>Live Prediction Diagnostics</span><span id="diagnosticStatus">Feedback-driven strategy review</span></div>
+            <div class="diagnostic-grid">
+              <div class="diagnostic-readout" id="diagnosticCards"></div>
+              <div class="table-wrap">
+                <div class="panel-title"><span>Strategy Review Queue</span><span>Evidence flags only; no automatic strategy rewrite</span></div>
+                <table class="review-table">
+                  <thead><tr><th>Priority</th><th>Strategy</th><th>Issue</th><th class="num">Evidence</th><th>Recommended Review</th></tr></thead>
+                  <tbody id="strategyReviewRows"></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -2709,7 +2784,17 @@
       const liveQuoteRefreshMs = 60000;
       const liveQuoteEndpoint = window.RISKDESK_QUOTE_ENDPOINT
         || localStorage.getItem("riskdeskQuoteEndpoint")
-        || "";
+        || "/api/quotes";
+      const liveStockEndpoint = window.RISKDESK_STOCK_ENDPOINT
+        || localStorage.getItem("riskdeskStockEndpoint")
+        || "/api/stocks";
+      const liveSignalHistoryState = {
+        status: "Live signal history initializing",
+        source: "RiskDesk stock history endpoint",
+        updatedAt: null,
+        data: {},
+        error: ""
+      };
 
       function updateLiveRefreshTelemetry() {
         setText("liveRefreshEvery", `${Math.round(liveQuoteRefreshMs / 1000)} sec`);
@@ -2773,7 +2858,7 @@
         const snapshot = parseEmbeddedData("publicMarketSnapshot");
         const { rebalance } = selectedAllocationContext();
         const typedSymbol = String(document.getElementById("newsSymbol")?.value || "").trim().toUpperCase();
-        const stockSymbols = new Set(snapshot?.universe?.stockSymbols || []);
+        const stockSymbols = new Set([...(snapshot?.universe?.stockSymbols || []), ...(snapshot?.universe?.riskFactorSymbols || [])]);
         const fromAllocation = positiveWeights(rebalance)
           .map(([symbol]) => symbol)
           .filter(symbol => stockSymbols.has(symbol))
@@ -2938,6 +3023,27 @@
               }
             }
           }
+        }
+      }
+
+      async function fetchLiveSignalHistories(symbols) {
+        const clean = [...new Set(symbols.map(symbol => String(symbol || "").trim().toUpperCase()).filter(Boolean))].slice(0, 25);
+        if (!clean.length || !liveStockEndpoint) return;
+        try {
+          const separator = liveStockEndpoint.includes("?") ? "&" : "?";
+          const response = await fetch(`${liveStockEndpoint}${separator}symbols=${encodeURIComponent(clean.join(","))}&range=2y&interval=1d`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Stock history endpoint returned HTTP ${response.status}`);
+          const payload = await response.json();
+          liveSignalHistoryState.data = { ...liveSignalHistoryState.data, ...(payload.data || {}) };
+          liveSignalHistoryState.status = "Live API daily history connected";
+          liveSignalHistoryState.source = payload.source?.providers?.[0] || "RiskDesk /api/stocks";
+          liveSignalHistoryState.updatedAt = new Date();
+          liveSignalHistoryState.error = "";
+        } catch (error) {
+          liveSignalHistoryState.status = "Live API daily history unavailable";
+          liveSignalHistoryState.source = "Embedded public snapshot fallback";
+          liveSignalHistoryState.updatedAt = new Date();
+          liveSignalHistoryState.error = error.message;
         }
       }
 
@@ -3897,6 +4003,12 @@
       }
 
       function stockHistory(snapshot, symbol) {
+        const live = liveSignalHistoryState.data?.[symbol];
+        if (Array.isArray(live?.points) && live.points.length >= 60 && live.mode !== "fallback") {
+          return live.points
+            .map(row => ({ date: row.date, price: Number(row.price), realtime: true, source: live.provider || liveSignalHistoryState.source }))
+            .filter(row => row.date && Number.isFinite(row.price));
+        }
         const daily = snapshot?.assets?.[symbol]?.daily;
         return Array.isArray(daily)
           ? daily.map(row => ({ date: row[0], price: Number(row[1]) })).filter(row => Number.isFinite(row.price))
@@ -3910,7 +4022,7 @@
       function realtimeAdjustedHistory(snapshot, symbol) {
         const history = stockHistory(snapshot, symbol);
         const quote = realtimeQuoteForSignal(symbol);
-        if (!quote || !history.length) return { history, realtime: false, quote: null };
+        if (!quote || !history.length) return { history, realtime: Boolean(history.at(-1)?.realtime), quote: null };
         const adjusted = history.slice();
         adjusted[adjusted.length - 1] = {
           ...adjusted[adjusted.length - 1],
@@ -3925,7 +4037,7 @@
         const stockSymbols = new Set(snapshot?.universe?.stockSymbols || []);
         const latestWeights = positiveWeights(model?.latestRebalance)
           .filter(([symbol]) => stockSymbols.has(symbol) && stockHistory(snapshot, symbol).length > 260);
-        if (latestWeights.length >= 6) return latestWeights.slice(0, 10);
+        if (latestWeights.length >= 6) return latestWeights;
         const allStocks = [...stockSymbols]
           .filter(symbol => stockHistory(snapshot, symbol).length > 260)
           .map(symbol => [symbol, latestWeights.find(([held]) => held === symbol)?.[1] || 0]);
@@ -4111,7 +4223,7 @@
       }
 
       function saveForwardLedger(rows) {
-        localStorage.setItem(forwardLedgerKey, JSON.stringify(rows.slice(-250)));
+        localStorage.setItem(forwardLedgerKey, JSON.stringify(rows.slice(-50000)));
       }
 
       async function loadForwardLedgerFromServer() {
@@ -4234,7 +4346,7 @@
         }).join("") : `<tr><td colspan="10">No matching rows. Change the status filter or wait for the next automatic daily forecast.</td></tr>`;
       }
 
-      function renderForwardSignals() {
+      async function renderForwardSignals() {
         const version = selectedForwardVersion();
         const all = versionedBacktests(parseEmbeddedData("allStrategyBacktests"), version);
         const snapshot = parseEmbeddedData("publicMarketSnapshot");
@@ -4272,7 +4384,13 @@
         const model = models.find(item => item.name === strategySelect.value) || models[0];
         if (strategySelect.value !== model.name) strategySelect.value = model.name;
         const horizonDays = Number(horizonSelect.value) || 5;
-        const rawRows = forwardModelUniverse(snapshot, model)
+        const candidateUniverse = forwardModelUniverse(snapshot, model);
+        const signalSymbols = candidateUniverse.map(([symbol]) => symbol);
+        const factorSymbols = ["SPY", "QQQ", "HYG", "IEF", "TLT", "XLK", "XLF", "XLV", "XLE", "QUAL", "MTUM"];
+        setText("forwardDataMode", "Connecting");
+        setText("forwardAsOf", "Fetching live daily history for Signal Controls...");
+        await fetchLiveSignalHistories([...signalSymbols, ...factorSymbols]);
+        const rawRows = candidateUniverse
           .map(([symbol, weight]) => {
             const forecast = forecastSymbol(snapshot, symbol, horizonDays, model, version);
             return forecast ? { ...forecast, targetWeight: Number(weight) || 0 } : null;
@@ -4305,7 +4423,7 @@
           table.innerHTML = rows.length ? rows.map((row, index) => `
             <tr>
               <td>${index + 1}</td>
-              <td><strong>${escapeHtml(row.symbol)}</strong><br><small>${escapeHtml(row.profile)} / ${escapeHtml(versionLabel(version))} / JPM AI ${number(row.jpmAIScore, 2)} / ${row.realtime ? "Realtime quote" : "Public close snapshot"}</small></td>
+              <td><strong>${escapeHtml(row.symbol)}</strong><br><small>${escapeHtml(row.profile)} / ${escapeHtml(versionLabel(version))} / JPM AI ${number(row.jpmAIScore, 2)} / ${row.realtime ? "Live signal data" : "Embedded fallback"}</small></td>
               <td class="num">$${number(row.currentPrice, 2)}</td>
               <td class="num">${percent(row.predictedReturn, 2)}</td>
               <td class="num">$${number(row.predictedPrice, 2)}</td>
@@ -4318,18 +4436,29 @@
         }
         const expectedReturn = rows.reduce((sum, row) => sum + row.targetWeight * row.predictedReturn, 0);
         const realtimeCount = rows.filter(row => row.realtime).length;
-        const buyCount = rows.filter(row => row.signal === "Buy").length;
+        const actionableCount = rows.filter(row => row.signal === "Buy" || Math.abs(row.predictedReturn) >= .003).length;
         const pendingCount = lastForwardRows.filter(row => forwardActualCheck(snapshot, row) === "Pending").length;
         const forecastDate = rows[0]?.date || snapshot.generatedAt?.slice(0, 10) || "--";
-        setText("forwardMode", `${versionLabel(version)} / ${realtimeCount ? "Realtime signal forecast" : "Public close snapshot forecast"}`);
-        setText("forwardAsOf", realtimeCount ? `Realtime quote-driven signal refresh: ${new Date().toLocaleTimeString()}` : `Latest public close snapshot: ${forecastDate}`);
+        const liveHistoryCount = rows.filter(row => liveSignalHistoryState.data?.[row.symbol]?.mode === "live-api").length;
+        const dataMode = realtimeCount
+          ? `Realtime quote + live history ${realtimeCount}/${rows.length}`
+          : liveHistoryCount
+            ? `Live API daily history ${liveHistoryCount}/${rows.length}`
+            : "Embedded fallback";
+        setText("forwardMode", `${versionLabel(version)} / ${liveHistoryCount || realtimeCount ? "Live API signal forecast" : "Embedded fallback preview"}`);
+        setText("forwardAsOf", liveHistoryCount || realtimeCount ? `${dataMode}: latest signal date ${forecastDate}` : `Embedded snapshot fallback: ${forecastDate}`);
         setText("forwardDate", forecastDate);
-        setText("forwardExpectedReturn", percent(expectedReturn, 2));
-        setText("forwardBuyCount", String(buyCount));
+        setText("forwardExpectedReturn", percent(expectedReturn, 3));
+        setText("forwardBuyCount", String(actionableCount));
         setText("forwardPendingCount", String(pendingCount));
-        setText("forwardDataMode", realtimeCount ? `Realtime ${realtimeCount}/${rows.length}` : "Public close");
+        setText("forwardDataMode", dataMode);
         setText("forwardFormulaTag", `${horizonDays}D signal`);
+        if (latestAutomationStatus?.versions) {
+          const versionStatus = latestAutomationStatus.versions.find(item => item.id === version);
+          if (versionStatus) setText("forwardAutoLedger", `${versionLabel(version)}: ${number(versionStatus.rows, 0)} rows / ${number(versionStatus.pending, 0)} pending`);
+        }
         renderForwardLedger(snapshot);
+        renderActionableEdgeSignals();
         renderPredictionAccuracyDashboard();
       }
 
@@ -4356,6 +4485,295 @@
           hitRate: checked ? hits / checked : null,
           mae: errors.length ? errors.reduce((sum, value) => sum + value, 0) / errors.length : null
         };
+      }
+
+      function rowMarketRegime(item) {
+        const row = item?.row || {};
+        return row.marketRegime || row.regime || row.marketState || latestAutomationStatus?.latestRun?.marketRegime || "Unclassified";
+      }
+
+      function recentCompletedRows(rows, size = 160) {
+        return rows.slice().sort((left, right) => {
+          const a = `${left.outcome.actualDate || left.row.dueDate || left.row.forecastDate || ""}|${left.row.recordedAt || ""}`;
+          const b = `${right.outcome.actualDate || right.row.dueDate || right.row.forecastDate || ""}|${right.row.recordedAt || ""}`;
+          return a.localeCompare(b);
+        }).slice(-size);
+      }
+
+      function diagnosticReadout(label, value, detail, tone = "") {
+        return `
+          <div class="diagnostic-card">
+            <span>${escapeHtml(label)}</span>
+            <strong class="${escapeHtml(tone)}">${escapeHtml(value)}</strong>
+            <p>${escapeHtml(detail)}</p>
+          </div>
+        `;
+      }
+
+      function reviewPriority(hitRate, checked) {
+        if (checked >= 10 && Number.isFinite(hitRate) && hitRate < .45) return "High";
+        if (checked >= 6 && Number.isFinite(hitRate) && hitRate < .52) return "Medium";
+        return "Watch";
+      }
+
+      function reviewRecommendation(issue, item) {
+        const text = String(issue || "").toLowerCase();
+        if (text.includes("risk-off")) return "Review volatility cap, VIX stress filter, and defensive hedge weight before changing the core strategy.";
+        if (text.includes("buy")) return "Raise buy threshold or require stronger cross-sectional rank confirmation for this strategy.";
+        if (text.includes("reduce")) return "Check whether downside signal is too sensitive; compare predicted return sign with actual one-day reversal.";
+        if (text.includes("v4")) return "Inspect V4 market-adaptive factors for this strategy; keep V3.5 as control until live accuracy gap stabilizes.";
+        if ((item?.mae || 0) > .025) return "Prediction direction may be usable but magnitude error is high; lower confidence scaling.";
+        return "Keep the strategy version unchanged, diagnose the weak factor, then validate any parameter change out-of-sample.";
+      }
+
+      function predictionErrorStats(items) {
+        const returnErrors = [];
+        const priceErrors = [];
+        const brierScores = [];
+        items.forEach(item => {
+          const actualReturn = Number(item.outcome.actualReturn);
+          const predictedReturn = Number(item.row.predictedReturn);
+          const actualPrice = Number(item.outcome.actualPrice);
+          const predictedPrice = Number(item.row.predictedPrice);
+          const probabilityUp = Number(item.row.probabilityUp);
+          if (Number.isFinite(actualReturn) && Number.isFinite(predictedReturn)) returnErrors.push(actualReturn - predictedReturn);
+          if (Number.isFinite(actualPrice) && Number.isFinite(predictedPrice)) priceErrors.push(Math.abs(actualPrice - predictedPrice));
+          if (Number.isFinite(probabilityUp)) {
+            const actualUp = actualReturn > 0 ? 1 : 0;
+            brierScores.push((probabilityUp - actualUp) ** 2);
+          }
+        });
+        return {
+          mae: returnErrors.length ? simpleAverage(returnErrors.map(value => Math.abs(value))) : null,
+          rmse: returnErrors.length ? Math.sqrt(simpleAverage(returnErrors.map(value => value ** 2))) : null,
+          priceMae: priceErrors.length ? simpleAverage(priceErrors) : null,
+          brier: brierScores.length ? simpleAverage(brierScores) : null
+        };
+      }
+
+      function strategyAccuracyGroups(rows, minimum = 3) {
+        const groups = [];
+        for (const version of ["v35", "v4"]) {
+          const names = [...new Set(rows.filter(item => (item.row.modelVersion || "v35") === version).map(item => item.row.strategy).filter(Boolean))];
+          names.forEach(strategy => {
+            const group = rows.filter(item => (item.row.modelVersion || "v35") === version && item.row.strategy === strategy);
+            const stats = summarizePredictionGroup(group);
+            const errors = predictionErrorStats(group);
+            if (stats.checked >= minimum) groups.push({ version, strategy, group, ...stats, ...errors });
+          });
+        }
+        return groups;
+      }
+
+      function actionForEdge(edge, confidence) {
+        if (edge >= .006 && confidence >= .62) return "Actionable paper long";
+        if (edge >= .003 && confidence >= .55) return "Watchlist long";
+        if (edge <= -.006 && confidence >= .62) return "Avoid / reduce watch";
+        return "No trade";
+      }
+
+      function renderActionableEdgeSignals() {
+        const node = document.getElementById("edgeSignalRows");
+        if (!node) return;
+        const version = selectedForwardVersion();
+        const rows = lastForwardRows
+          .filter(row => (row.modelVersion || version) === version)
+          .map(row => {
+            const predicted = Number(row.predictedReturn);
+            const confidence = Number(row.confidence ?? row.probabilityUp);
+            const cost = .001;
+            const riskBuffer = clampValue(Math.abs(predicted) * .22 + (1 - clampValue(confidence || .5, .05, .95)) * .006, .0025, .012);
+            const hurdle = cost + riskBuffer;
+            const edge = Number.isFinite(predicted) ? Math.abs(predicted) - hurdle : null;
+            const paperSize = Number.isFinite(edge) && edge > 0 ? clampValue(edge * 3.5 * clampValue(confidence || .5, .25, .9), 0, .04) : 0;
+            return { ...row, edge, hurdle, confidence, paperSize, action: actionForEdge(edge, confidence) };
+          })
+          .filter(row => Number.isFinite(row.edge))
+          .sort((left, right) => right.edge - left.edge)
+          .slice(0, 12);
+        setText("edgeSignalStatus", rows.length ? `${versionLabel(version)} / cost 10 bps round-trip + risk buffer / latest signal scan` : "Refresh signals to build edge table");
+        node.innerHTML = rows.length ? rows.map((row, index) => {
+          const pillClass = row.action.includes("long") ? "buy" : row.action.includes("reduce") ? "reduce" : "hold";
+          return `
+            <tr>
+              <td class="num">${index + 1}</td>
+              <td><strong>${escapeHtml(row.symbol)}</strong></td>
+              <td><strong>${escapeHtml(compactStrategyName(row.strategy))}</strong><br><small>${escapeHtml(row.versionLabel || versionLabel(version))}</small></td>
+              <td class="num">${percent(row.predictedReturn, 2)}</td>
+              <td class="num">${percent(row.hurdle, 2)}</td>
+              <td class="num">${percent(row.edge, 2)}</td>
+              <td class="num">${Number.isFinite(row.confidence) ? percent(row.confidence, 1) : "--"}</td>
+              <td class="num">${percent(row.paperSize, 1)}</td>
+              <td><span class="forecast-pill ${pillClass}">${escapeHtml(row.action)}</span></td>
+            </tr>
+          `;
+        }).join("") : `<tr><td colspan="9">Refresh Signals to rank current predicted-return edge after cost and risk buffer.</td></tr>`;
+      }
+
+      function renderForecastMagnitudeAccuracy(rows) {
+        const node = document.getElementById("forecastMagnitudeRows");
+        if (!node) return;
+        const groups = strategyAccuracyGroups(rows, 5)
+          .sort((left, right) => (left.mae ?? 9) - (right.mae ?? 9))
+          .slice(0, 12);
+        node.innerHTML = groups.length ? groups.map(item => `
+          <tr>
+            <td><strong>${escapeHtml(item.version === "v4" ? "V4" : "V3.5")}</strong></td>
+            <td><strong class="strategy-name" title="${escapeHtml(item.strategy)}">${escapeHtml(compactStrategyName(item.strategy))}</strong></td>
+            <td class="num">${number(item.checked, 0)}</td>
+            <td class="num">${percent(item.hitRate, 1)}</td>
+            <td class="num">${Number.isFinite(item.mae) ? percent(item.mae, 2) : "--"}</td>
+            <td class="num">${Number.isFinite(item.rmse) ? percent(item.rmse, 2) : "--"}</td>
+            <td class="num">${Number.isFinite(item.priceMae) ? `$${number(item.priceMae, 2)}` : "--"}</td>
+          </tr>
+        `).join("") : `<tr><td colspan="7">Waiting for enough checked prediction rows to calculate return MAE, RMSE and price error.</td></tr>`;
+      }
+
+      function renderCalibrationTable(rows) {
+        const node = document.getElementById("calibrationRows");
+        if (!node) return;
+        const buckets = [
+          { label: "50-60%", min: .5, max: .6 },
+          { label: "60-70%", min: .6, max: .7 },
+          { label: "70-80%", min: .7, max: .8 },
+          { label: "80%+", min: .8, max: 1.01 }
+        ];
+        const rendered = [];
+        for (const version of ["v35", "v4"]) {
+          buckets.forEach(bucket => {
+            const group = rows.filter(item => {
+              const rowVersion = item.row.modelVersion || "v35";
+              const confidence = Number(item.row.confidence ?? item.row.probabilityUp);
+              return rowVersion === version && Number.isFinite(confidence) && confidence >= bucket.min && confidence < bucket.max;
+            });
+            const stats = summarizePredictionGroup(group);
+            const errors = predictionErrorStats(group);
+            if (stats.checked) {
+              const avgConfidence = simpleAverage(group.map(item => Number(item.row.confidence ?? item.row.probabilityUp)).filter(Number.isFinite));
+              rendered.push({ version, bucket: bucket.label, checked: stats.checked, avgConfidence, hitRate: stats.hitRate, brier: errors.brier });
+            }
+          });
+        }
+        node.innerHTML = rendered.length ? rendered.map(item => `
+          <tr>
+            <td>${escapeHtml(versionLabel(item.version).replace("Version ", "V"))}</td>
+            <td>${escapeHtml(item.bucket)}</td>
+            <td class="num">${number(item.checked, 0)}</td>
+            <td class="num">${percent(item.avgConfidence, 1)}</td>
+            <td class="num">${percent(item.hitRate, 1)}</td>
+            <td class="num">${Number.isFinite(item.brier) ? number(item.brier, 3) : "--"}</td>
+          </tr>
+        `).join("") : `<tr><td colspan="6">Calibration starts after checked rows include probability/confidence values.</td></tr>`;
+      }
+
+      function renderSystemEventLog(rows) {
+        const node = document.getElementById("systemEventLog");
+        if (!node) return;
+        const now = new Date();
+        const latest = latestAutomationStatus?.latestRun;
+        const recent = recentCompletedRows(rows, 160);
+        const recentStats = summarizePredictionGroup(recent);
+        const v4 = summarizePredictionGroup(rows.filter(item => (item.row.modelVersion || "v35") === "v4"));
+        const v35 = summarizePredictionGroup(rows.filter(item => (item.row.modelVersion || "v35") === "v35"));
+        const entries = [
+          { time: now.toLocaleTimeString(), type: "SCAN", text: `Dashboard refreshed ${number(rows.length, 0)} checked prediction outcomes from live ledger.` },
+          { time: latest?.ranAt ? new Date(latest.ranAt).toLocaleTimeString() : "--", type: "AUTO", text: latest ? `Generated ${number(latest.generated || 0, 0)} forecasts and checked ${number(latest.checked || 0, 0)} due rows; regime ${latest.marketRegime || "Unclassified"}.` : "Waiting for automation status." },
+          { time: now.toLocaleTimeString(), type: "EDGE", text: `${lastForwardRows.length ? `${number(lastForwardRows.length, 0)} current signal rows ranked by predicted return after 10 bps cost and risk buffer.` : "Refresh Signals to rank actionable edge candidates."}` },
+          { time: now.toLocaleTimeString(), type: "V4", text: `V4 checked ${number(v4.checked, 0)} rows at ${Number.isFinite(v4.hitRate) ? percent(v4.hitRate, 1) : "--"} vs V3.5 ${Number.isFinite(v35.hitRate) ? percent(v35.hitRate, 1) : "--"}.` },
+          { time: now.toLocaleTimeString(), type: "FAST", text: `Recent window hit rate ${Number.isFinite(recentStats.hitRate) ? percent(recentStats.hitRate, 1) : "--"} across ${number(recentStats.checked, 0)} checked rows.` },
+          { time: now.toLocaleTimeString(), type: "RULE", text: "Signals are paper-trading research outputs only; strategy code is not automatically rewritten." }
+        ];
+        node.innerHTML = entries.map(item => `<div><em>${escapeHtml(item.time)}</em><strong>${escapeHtml(item.type)}</strong><span>${escapeHtml(item.text)}</span></div>`).join("");
+      }
+
+      function renderPredictionDiagnostics(rows = completedPredictionRows()) {
+        const cardNode = document.getElementById("diagnosticCards");
+        const reviewNode = document.getElementById("strategyReviewRows");
+        if (!cardNode && !reviewNode) return;
+        const recent = recentCompletedRows(rows);
+        const recentStats = summarizePredictionGroup(recent);
+        const byVersion = version => summarizePredictionGroup(rows.filter(item => (item.row.modelVersion || "v35") === version));
+        const v35 = byVersion("v35");
+        const v4 = byVersion("v4");
+        const v4Edge = Number.isFinite(v4.hitRate) && Number.isFinite(v35.hitRate) ? v4.hitRate - v35.hitRate : null;
+
+        const signalGroups = [];
+        for (const version of ["v35", "v4"]) {
+          for (const signal of ["Buy", "Hold", "Reduce"]) {
+            const group = rows.filter(item => (item.row.modelVersion || "v35") === version && (item.row.signal || "Hold") === signal);
+            const stats = summarizePredictionGroup(group);
+            if (stats.checked) signalGroups.push({ type: "Signal", version, signal, issue: `${signal} signal`, ...stats });
+          }
+        }
+        const regimeGroups = [];
+        for (const version of ["v35", "v4"]) {
+          [...new Set(rows.filter(item => (item.row.modelVersion || "v35") === version).map(rowMarketRegime))].forEach(regime => {
+            const group = rows.filter(item => (item.row.modelVersion || "v35") === version && rowMarketRegime(item) === regime);
+            const stats = summarizePredictionGroup(group);
+            if (stats.checked) regimeGroups.push({ type: "Regime", version, regime, issue: `${regime} regime`, ...stats });
+          });
+        }
+        const weakestSignal = signalGroups.slice().sort((a, b) => (a.hitRate || 0) - (b.hitRate || 0))[0];
+        const weakestRegime = regimeGroups.slice().sort((a, b) => (a.hitRate || 0) - (b.hitRate || 0))[0];
+
+        setText("diagnosticStatus", rows.length ? `${number(rows.length, 0)} checked rows / live feedback diagnostics` : "Waiting for checked live rows");
+        if (cardNode) {
+          const latest = latestAutomationStatus?.latestRun;
+          const latestRate = Number(latest?.hitRate);
+          cardNode.innerHTML = rows.length ? [
+            diagnosticReadout("Recent Window", Number.isFinite(recentStats.hitRate) ? percent(recentStats.hitRate, 1) : "--", `${number(recentStats.checked, 0)} latest checked rows; this is the fast warning signal, separate from Sharpe.`),
+            diagnosticReadout("V4 Edge vs V3.5", Number.isFinite(v4Edge) ? `${v4Edge >= 0 ? "+" : ""}${percent(v4Edge, 1)}` : "--", `V3.5 ${Number.isFinite(v35.hitRate) ? percent(v35.hitRate, 1) : "--"} vs V4 ${Number.isFinite(v4.hitRate) ? percent(v4.hitRate, 1) : "--"}.`),
+            diagnosticReadout("Weakest Signal", weakestSignal ? `${versionLabel(weakestSignal.version).replace("Version ", "V")} ${weakestSignal.signal}` : "--", weakestSignal ? `${number(weakestSignal.checked, 0)} checked / ${percent(weakestSignal.hitRate, 1)} hit rate / MAE ${Number.isFinite(weakestSignal.mae) ? percent(weakestSignal.mae, 2) : "--"}.` : "Waiting for signal-level checks."),
+            diagnosticReadout("Weakest Regime", weakestRegime ? `${versionLabel(weakestRegime.version).replace("Version ", "V")} ${weakestRegime.regime}` : "--", weakestRegime ? `${number(weakestRegime.checked, 0)} checked / ${percent(weakestRegime.hitRate, 1)} hit rate.` : "Waiting for market-regime checks."),
+            diagnosticReadout("Latest Auto Check", latest?.ranAt ? `${Number.isFinite(latestRate) ? percent(latestRate, 1) : "--"}` : "--", latest?.ranAt ? `${new Date(latest.ranAt).toLocaleString()} / ${latest.marketRegime || "Unclassified"} / ${number(latest.checked || 0, 0)} rows checked.` : "Waiting for backend automation status.")
+          ].join("") : diagnosticReadout("Live Diagnostics", "--", "Checked prediction rows will appear here after the daily automation validates saved forecasts.");
+        }
+
+        const strategyGroups = [];
+        for (const version of ["v35", "v4"]) {
+          const names = [...new Set(rows.filter(item => (item.row.modelVersion || "v35") === version).map(item => item.row.strategy).filter(Boolean))];
+          names.forEach(strategy => {
+            const group = rows.filter(item => (item.row.modelVersion || "v35") === version && item.row.strategy === strategy);
+            const stats = summarizePredictionGroup(group);
+            if (stats.checked >= 5) strategyGroups.push({ type: "Strategy", version, strategy, issue: "strategy hit rate", ...stats });
+          });
+        }
+        const versionGapRows = [];
+        const strategyNames = [...new Set(strategyGroups.map(item => item.strategy))];
+        strategyNames.forEach(strategy => {
+          const base = strategyGroups.find(item => item.version === "v35" && item.strategy === strategy);
+          const upgraded = strategyGroups.find(item => item.version === "v4" && item.strategy === strategy);
+          if (base && upgraded && upgraded.checked >= 5 && base.checked >= 5 && Number.isFinite(base.hitRate) && Number.isFinite(upgraded.hitRate) && upgraded.hitRate + .05 < base.hitRate) {
+            versionGapRows.push({ type: "Version gap", version: "v4", strategy, issue: "V4 below V3.5", checked: upgraded.checked, hitRate: upgraded.hitRate, mae: upgraded.mae });
+          }
+        });
+        const candidates = [
+          ...strategyGroups.filter(item => Number.isFinite(item.hitRate) && item.hitRate < .52),
+          ...signalGroups.filter(item => item.checked >= 10 && Number.isFinite(item.hitRate) && item.hitRate < .5).map(item => ({ ...item, strategy: item.signal })),
+          ...regimeGroups.filter(item => item.checked >= 10 && Number.isFinite(item.hitRate) && item.hitRate < .5).map(item => ({ ...item, strategy: item.regime })),
+          ...versionGapRows
+        ].sort((a, b) => (a.hitRate || 0) - (b.hitRate || 0) || b.checked - a.checked).slice(0, 8);
+
+        if (reviewNode) {
+          reviewNode.innerHTML = candidates.length ? candidates.map(item => {
+            const issue = item.type === "Version gap"
+              ? "V4 underperforms control"
+              : item.type === "Signal"
+                ? `${item.signal} signal weakness`
+                : item.type === "Regime"
+                  ? `${item.regime} regime weakness`
+                  : "Strategy accuracy weakness";
+            return `
+              <tr>
+                <td><span class="pill ${reviewPriority(item.hitRate, item.checked) === "High" ? "breach" : reviewPriority(item.hitRate, item.checked) === "Medium" ? "watch" : ""}">${escapeHtml(reviewPriority(item.hitRate, item.checked))}</span></td>
+                <td><strong>${escapeHtml(versionLabel(item.version).replace("Version ", "V"))}</strong><br><small>${escapeHtml(compactStrategyName(item.strategy || item.issue))}</small></td>
+                <td>${escapeHtml(issue)}</td>
+                <td class="num">${number(item.checked, 0)} / ${percent(item.hitRate, 1)}</td>
+                <td>${escapeHtml(reviewRecommendation(issue, item))}</td>
+              </tr>
+            `;
+          }).join("") : `<tr><td colspan="5">No urgent review flag yet. Keep collecting daily live outcomes before changing strategy logic.</td></tr>`;
+        }
       }
 
       function renderPredictionAccuracyDashboard() {
@@ -4419,6 +4837,10 @@
               return `<tr><td>${escapeHtml(versionLabel(item.version).replace("Version ", "V"))}</td><td><strong>${escapeHtml(compactStrategyName(item.strategy))}</strong></td><td class="num">${number(item.checked, 0)}</td><td class="num">${percent(item.hitRate, 1)}</td><td class="num">${percent(confidence, 1)}</td><td>${escapeHtml(adjustment)}</td></tr>`;
             }).join("") || `<tr><td colspan="6">Feedback confidence starts after checked predictions arrive.</td></tr>`;
         }
+        renderForecastMagnitudeAccuracy(rows);
+        renderCalibrationTable(rows);
+        renderSystemEventLog(rows);
+        renderPredictionDiagnostics(rows);
       }
 
       function updateWeeklyBacktestTelemetry() {

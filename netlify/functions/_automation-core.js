@@ -6,6 +6,11 @@ const {
 } = require("./_riskdesk-common");
 
 const LEDGER_KEY = "forward-ledger.json";
+const VERSION_LEDGER_KEYS = {
+  v35: "forward-ledger-v35.json",
+  v4: "forward-ledger-v4.json",
+  v45: "forward-ledger-v45.json"
+};
 const STATUS_KEY = "automation-status.json";
 let lastBlobError = null;
 
@@ -46,6 +51,47 @@ async function writeJson(store, key, value) {
   } catch {
     return false;
   }
+}
+
+function rowVersion(row) {
+  const version = String(row?.modelVersion || "v35").toLowerCase();
+  return version === "v4" || version === "v45" ? version : "v35";
+}
+
+function dedupeLedgerRows(rows) {
+  const seen = new Set();
+  return rows.filter(row => {
+    const id = rowId(row);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+async function readAllLedgerRows(store) {
+  const legacy = await readJson(store, LEDGER_KEY, []);
+  const v35 = await readJson(store, VERSION_LEDGER_KEYS.v35, []);
+  const v4 = await readJson(store, VERSION_LEDGER_KEYS.v4, []);
+  const v45 = await readJson(store, VERSION_LEDGER_KEYS.v45, []);
+  return dedupeLedgerRows([
+    ...(Array.isArray(v35) ? v35 : []),
+    ...(Array.isArray(v4) ? v4 : []),
+    ...(Array.isArray(v45) ? v45 : []),
+    ...(Array.isArray(legacy) ? legacy : [])
+  ]);
+}
+
+async function writeAllLedgerRows(store, rows) {
+  if (!store) return false;
+  const grouped = { v35: [], v4: [], v45: [] };
+  for (const row of dedupeLedgerRows(rows)) grouped[rowVersion(row)].push(row);
+  await Promise.all([
+    writeJson(store, VERSION_LEDGER_KEYS.v35, grouped.v35.slice(-50000)),
+    writeJson(store, VERSION_LEDGER_KEYS.v4, grouped.v4.slice(-50000)),
+    writeJson(store, VERSION_LEDGER_KEYS.v45, grouped.v45.slice(-50000)),
+    writeJson(store, LEDGER_KEY, dedupeLedgerRows(rows).slice(-50000))
+  ]);
+  return true;
 }
 
 function addTradingDays(dateText, days) {
@@ -101,8 +147,8 @@ function weightsFromModel(model, stockSymbols) {
     pairs = Object.entries(source).map(([symbol, weight]) => [String(symbol).toUpperCase(), Number(weight)]);
   }
   pairs = pairs.filter(([symbol, weight]) => stockSet.has(symbol) && Number.isFinite(weight) && weight > 0);
-  if (pairs.length) return pairs.sort((a, b) => b[1] - a[1]).slice(0, 5);
-  return stockSymbols.slice(0, 5).map(symbol => [symbol, 1 / 5]);
+  if (pairs.length) return pairs.sort((a, b) => b[1] - a[1]);
+  return stockSymbols.slice(0, 30).map(symbol => [symbol, 1 / 30]);
 }
 
 const AUTOMATION_VERSIONS = [
@@ -117,6 +163,12 @@ const AUTOMATION_VERSIONS = [
     label: "Version 4 Market-Adaptive",
     automationVersion: "daily-v4",
     mode: "market regime + relative strength + volatility penalty"
+  },
+  {
+    id: "v45",
+    label: "Version 4.5 GenAI Research Overlay",
+    automationVersion: "daily-v45-research-overlay",
+    mode: "market regime + relative strength + volatility penalty + GenAI research/news overlay"
   }
 ];
 
@@ -169,7 +221,8 @@ function forecastRow({ model, symbol, weight, history, horizonDays, version, con
   const vol20 = stdev(returns.slice(-20)) * Math.sqrt(252);
   const trendScore = 0.5 * mom20 + 0.35 * mom60 + 0.15 * mom5;
   const relativeStrength = mom20 - (context?.spy20 || 0);
-  const raw = version?.id === "v4"
+  const usesMarketAdaptive = version?.id === "v4" || version?.id === "v45";
+  const raw = usesMarketAdaptive
     ? (0.4 * mom20 + 0.25 * mom5 + 0.2 * mom60 + 0.15 * relativeStrength) * Math.sqrt(horizonDays / 20)
       + (context?.riskOn || 0) * 0.18
       - Math.max(0, vol20 - 0.24) * 0.055
@@ -198,7 +251,7 @@ function forecastRow({ model, symbol, weight, history, horizonDays, version, con
     probabilityUp,
     signal,
     targetWeight: weight,
-    confidence: clamp(Math.abs(probabilityUp - 0.5) * 2 + Math.min(0.2, Math.abs(mom20) * 2) + (version?.id === "v4" ? Math.min(0.12, Math.abs(relativeStrength) * 1.2) : 0), 0, 1),
+    confidence: clamp(Math.abs(probabilityUp - 0.5) * 2 + Math.min(0.2, Math.abs(mom20) * 2) + (usesMarketAdaptive ? Math.min(0.12, Math.abs(relativeStrength) * 1.2) : 0), 0, 1),
     provider: history.provider,
     marketRegime: context?.regime || "Neutral",
     marketRiskOn: context?.riskOn || 0,
@@ -211,6 +264,54 @@ function forecastRow({ model, symbol, weight, history, horizonDays, version, con
   };
 }
 
+
+function researchOverlayForModel(model, context) {
+  const name = String(model?.name || "");
+  let theme = "General quantitative strategy evidence";
+  let overlay = 0.5;
+  let recommendation = "neutral";
+  if (/S8|Trend-Guarded Reversion/i.test(name)) {
+    theme = "Trend-guarded mean reversion evidence";
+    overlay = context.regime === "Risk-off" ? 0.42 : 0.58;
+  } else if (/S12|Adaptive Volatility/i.test(name)) {
+    theme = "Volatility-band adaptive compounding evidence";
+    overlay = Math.max(0.38, Math.min(0.66, 0.58 - Math.max(0, Math.abs(context.vix5 || 0)) * 2));
+  } else if (/S1|AI Capex|V3|Boosted Trees/i.test(name)) {
+    theme = "AI infrastructure and earnings momentum evidence";
+    overlay = context.qqq20 > 0 ? 0.62 : 0.48;
+  } else if (/S7|Revision|Growth/i.test(name)) {
+    theme = "Revision-proxy growth evidence";
+    overlay = context.riskOn > 0 ? 0.59 : 0.47;
+  } else if (/S11|Tail-Risk|Shock/i.test(name)) {
+    theme = "Tail-risk and defensive hedge evidence";
+    overlay = context.regime === "Risk-off" ? 0.64 : 0.5;
+  } else {
+    overlay = context.riskOn > 0 ? 0.56 : context.riskOn < 0 ? 0.46 : 0.5;
+  }
+  if (overlay >= 0.58) recommendation = "raise-confidence";
+  if (overlay <= 0.42) recommendation = "reduce-confidence";
+  return {
+    researchConfidence: overlay,
+    researchRecommendation: recommendation,
+    researchTheme: theme,
+    researchMode: "scheduled-proxy-overlay",
+    researchEvidenceCount: 1,
+    researchFetchedAt: new Date().toISOString()
+  };
+}
+
+function applyResearchOverlay(row, model, context) {
+  if ((row.modelVersion || "") !== "v45") return row;
+  const overlay = researchOverlayForModel(model, context);
+  const direction = overlay.researchRecommendation === "raise-confidence" ? 1 : overlay.researchRecommendation === "reduce-confidence" ? -1 : 0;
+  const confidence = clamp(Number(row.confidence || 0) + direction * 0.18 * Math.abs(Number(overlay.researchConfidence) - 0.5), 0, 1);
+  return {
+    ...row,
+    confidence,
+    ...overlay,
+    signalsUsed: `${row.signalsUsed || "market-adaptive factors"} + GenAI research/news overlay (${overlay.researchRecommendation}, ${(overlay.researchConfidence * 100).toFixed(1)}%)`
+  };
+}
 function validateRows(rows, historiesBySymbol) {
   let checked = 0;
   let hit = 0;
@@ -243,16 +344,18 @@ function rowId(row) {
 
 async function runWeeklyAutomation({ source = "scheduled" } = {}) {
   const store = await blobStore();
-  const existingRows = await readJson(store, LEDGER_KEY, []);
+  const existingRows = await readAllLedgerRows(store);
   const snapshot = embeddedJson("publicMarketSnapshot") || {};
   const stockSymbols = snapshot.universe?.stockSymbols || [];
   const riskFactorSymbols = snapshot.universe?.riskFactorSymbols || [];
+  const tradableSymbols = [...new Set([...stockSymbols, ...riskFactorSymbols])];
   const models = modelList();
   const selectedModels = models.slice(0, 15);
   const wantedSymbols = new Set();
   for (const model of selectedModels) {
-    for (const [symbol] of weightsFromModel(model, stockSymbols)) wantedSymbols.add(symbol);
+    for (const [symbol] of weightsFromModel(model, tradableSymbols)) wantedSymbols.add(symbol);
   }
+  for (const row of existingRows) if (row?.symbol) wantedSymbols.add(String(row.symbol).toUpperCase());
   ["SPY", "QQQ", "TLT", "^VIX"].forEach(symbol => wantedSymbols.add(symbol));
   const histories = await Promise.all([...wantedSymbols].map(historyFor));
   const historiesBySymbol = new Map(histories.map(history => [history.symbol, history]));
@@ -268,16 +371,34 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
   for (const version of AUTOMATION_VERSIONS) {
     for (const model of selectedModels) {
       for (const horizonDays of [1]) {
-        const weights = weightsFromModel(model, stockSymbols);
+        const weights = weightsFromModel(model, tradableSymbols);
         const weightSum = weights.reduce((sum, [, weight]) => sum + weight, 0) || 1;
+        const portfolioRows = [];
         for (const [symbol, rawWeight] of weights) {
           const history = historiesBySymbol.get(symbol) || await historyFor(symbol);
           const row = forecastRow({ model, symbol, weight: rawWeight / weightSum, history, horizonDays, version, context });
-          if (row) newRows.push({ ...row, recordedAt: new Date().toISOString(), source });
+          if (row) portfolioRows.push(applyResearchOverlay(row, model, context));
         }
+        const portfolioExpectedReturn = portfolioRows.reduce((sum, row) => sum + Number(row.targetWeight || 0) * Number(row.predictedReturn || 0), 0);
+        const generatedAt = new Date().toISOString();
+        portfolioRows.forEach((row, index) => {
+          newRows.push({
+            ...row,
+            portfolioExpectedReturn,
+            portfolioHoldingCount: portfolioRows.length,
+            portfolioRank: index + 1,
+            ledgerScope: "full-portfolio-holding",
+            recordedAt: generatedAt,
+            source
+          });
+        });
       }
     }
   }
+  const generatedByVersion = AUTOMATION_VERSIONS.map(version => {
+    const versionRows = newRows.filter(row => row.modelVersion === version.id);
+    return { id: version.id, label: version.label, rows: versionRows.length };
+  });
   const seen = new Set();
   const mergedRows = [...validation.rows, ...newRows]
     .filter(row => {
@@ -286,8 +407,8 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
       seen.add(id);
       return true;
     })
-    .slice(-1500);
-  const saved = await writeJson(store, LEDGER_KEY, mergedRows);
+    .slice(-50000);
+  const saved = await writeAllLedgerRows(store, mergedRows);
   const status = {
     source,
     ranAt: new Date().toISOString(),
@@ -295,6 +416,7 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
     storage: store ? "Netlify Blobs" : "No persistent store available",
     storageError: store ? null : lastBlobError,
     generated: newRows.length,
+    generatedByVersion,
     totalRows: mergedRows.length,
     checked: validation.checked,
     hits: validation.hit,
@@ -305,6 +427,8 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
     universeLabel: UNIVERSE_LABEL,
     stockUniverseCount: stockSymbols.length,
     riskFactorCount: riskFactorSymbols.length,
+    ledgerScope: "full-portfolio-holdings",
+    expectedDailyRows: newRows.length,
     horizonDays: 1,
     marketRegime: context.regime,
     symbols: [...wantedSymbols],
@@ -314,14 +438,14 @@ async function runWeeklyAutomation({ source = "scheduled" } = {}) {
   return {
     status,
     rows: mergedRows.slice(-100),
-    generatedRows: newRows.slice(0, 100)
+    generatedRows: newRows.slice(-150)
   };
 }
 
 async function automationStatus() {
   const store = await blobStore();
   const status = await readJson(store, STATUS_KEY, null);
-  const rows = await readJson(store, LEDGER_KEY, []);
+  const rows = await readAllLedgerRows(store);
   const pending = rows.filter(row => row.actualStatus !== "Hit" && row.actualStatus !== "Miss").length;
   const checked = rows.filter(row => row.actualStatus === "Hit" || row.actualStatus === "Miss");
   const hits = checked.filter(row => row.actualStatus === "Hit").length;

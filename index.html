@@ -1339,7 +1339,7 @@
           </div>
 
           <div class="panel">
-            <div class="panel-title"><span>Daily Prediction Feedback</span><span>Version 3.5 vs Version 4, checked after real prices arrive</span></div>
+            <div class="panel-title"><span>Daily Prediction Feedback</span><span>Version 3.5 / Version 4 / Version 4.5, checked after real prices arrive</span></div>
             <div class="feedback-grid" id="dailyFeedbackCards"></div>
           </div>
 
@@ -1362,6 +1362,7 @@
             <div class="metric-grid" style="margin-bottom:12px">
               <div class="metric"><span>V3.5 Accuracy</span><strong id="accuracyV35">--</strong><small id="accuracyV35Rows">Checked predictions</small></div>
               <div class="metric"><span>V4 Accuracy</span><strong id="accuracyV4">--</strong><small id="accuracyV4Rows">Checked predictions</small></div>
+              <div class="metric"><span>V4.5 Accuracy</span><strong id="accuracyV45">--</strong><small id="accuracyV45Rows">Checked predictions</small></div>
               <div class="metric"><span>Best Signal</span><strong id="accuracyBestSignal">--</strong><small>Buy / Hold / Reduce</small></div>
               <div class="metric"><span>Avg Abs Error</span><strong id="accuracyMae">--</strong><small>Predicted return vs actual return</small></div>
             </div>
@@ -1382,6 +1383,7 @@
             <div class="metric-grid" style="margin-bottom:12px">
               <div class="metric"><span>V3.5 Portfolio Hit</span><strong id="portfolioHitV35">--</strong><small id="portfolioRowsV35">Checked portfolios</small></div>
               <div class="metric"><span>V4 Portfolio Hit</span><strong id="portfolioHitV4">--</strong><small id="portfolioRowsV4">Checked portfolios</small></div>
+              <div class="metric"><span>V4.5 Portfolio Hit</span><strong id="portfolioHitV45">--</strong><small id="portfolioRowsV45">Checked portfolios</small></div>
               <div class="metric"><span>Portfolio Return MAE</span><strong id="portfolioReturnMae">--</strong><small>Weighted predicted vs actual return</small></div>
               <div class="metric"><span>Avg Holdings Covered</span><strong id="portfolioAvgHoldings">--</strong><small>Top-holding vs full-holding coverage</small></div>
             </div>
@@ -4312,7 +4314,8 @@
         }
       }
 
-      const forwardLedgerKey = "riskdesk.forwardPredictionLedger.v35";
+      const forwardLedgerKey = "riskdesk.forwardPredictionLedger.versionSeparated";
+      const legacyForwardLedgerKey = "riskdesk.forwardPredictionLedger.v35";
       let lastForwardRows = [];
       let forwardServerLedgerLoaded = false;
       let latestAutomationStatus = null;
@@ -4367,11 +4370,14 @@
       }
 
       function forwardModelUniverse(snapshot, model) {
-        const stockSymbols = new Set(snapshot?.universe?.stockSymbols || []);
+        const eligibleSymbols = new Set([
+          ...(snapshot?.universe?.stockSymbols || []),
+          ...(snapshot?.universe?.riskFactorSymbols || [])
+        ]);
         const latestWeights = positiveWeights(model?.latestRebalance)
-          .filter(([symbol]) => stockSymbols.has(symbol) && stockHistory(snapshot, symbol).length > 260);
+          .filter(([symbol]) => eligibleSymbols.has(symbol) && stockHistory(snapshot, symbol).length > 260);
         if (latestWeights.length >= 6) return latestWeights;
-        const allStocks = [...stockSymbols]
+        const allStocks = [...eligibleSymbols]
           .filter(symbol => stockHistory(snapshot, symbol).length > 260)
           .map(symbol => [symbol, latestWeights.find(([held]) => held === symbol)?.[1] || 0]);
         return allStocks.slice(0, 30).map(([symbol], index) => [symbol, latestWeights.length ? 0 : 1 / 30 || 0, index]);
@@ -4554,7 +4560,7 @@
 
       function loadForwardLedger() {
         try {
-          return JSON.parse(localStorage.getItem(forwardLedgerKey) || "[]");
+          return JSON.parse(localStorage.getItem(forwardLedgerKey) || localStorage.getItem(legacyForwardLedgerKey) || "[]");
         } catch {
           return [];
         }
@@ -4726,7 +4732,7 @@
         const localRows = loadForwardLedger();
         const seen = new Set();
         const merged = [...localRows, ...serverRows].filter(row => {
-          const id = `${row.recordedAt || row.serverRecordedAt || ""}|${row.strategy}|${row.horizonDays}|${row.symbol}|${row.forecastDate}`;
+          const id = `${row.modelVersion || "v35"}|${row.automationVersion || ""}|${row.recordedAt || row.serverRecordedAt || ""}|${row.strategy}|${row.horizonDays}|${row.symbol}|${row.forecastDate}`;
           if (seen.has(id)) return false;
           seen.add(id);
           return true;
@@ -4746,6 +4752,29 @@
         return rows
           .filter(row => row.forecastDate === latestDate)
           .sort((left, right) => Number(left.portfolioRank || 999) - Number(right.portfolioRank || 999));
+      }
+
+      function normalizeBackendForecastRows(rows) {
+        return rows.map(row => ({
+          ...row,
+          date: row.forecastDate,
+          currentPrice: Number(row.currentPrice),
+          predictedReturn: Number(row.predictedReturn),
+          predictedPrice: Number(row.predictedPrice),
+          probabilityUp: Number(row.probabilityUp),
+          signal: row.signal || "Hold",
+          targetWeight: Number(row.targetWeight) || 0,
+          confidence: Number(row.confidence),
+          jpmAIScore: Number(row.jpmAIScore),
+          profile: row.signalsUsed || "Backend daily automation",
+          dueDate: row.dueDate,
+          provider: row.provider,
+          ledgerScope: row.ledgerScope,
+          portfolioRank: row.portfolioRank,
+          portfolioHoldingCount: row.portfolioHoldingCount,
+          realtime: false,
+          backendLedger: true
+        }));
       }
 
       function forecastRowMeta(row, version) {
@@ -4933,7 +4962,16 @@
         setText("forwardDataMode", "Connecting");
         setText("forwardAsOf", "Fetching live daily history for Signal Controls...");
         await fetchLiveSignalHistories([...signalSymbols, ...factorSymbols]);
-        const rawRows = candidateUniverse
+        let backendRows = [];
+        if (version === "v45") {
+          try {
+            await loadForwardLedgerFromServer();
+            backendRows = latestLedgerRowsFor(version, model.name, horizonDays);
+          } catch (error) {
+            console.warn("V4.5 full-holding ledger load failed", error);
+          }
+        }
+        const rawRows = backendRows.length ? [] : candidateUniverse
           .map(([symbol, weight]) => {
             const forecast = forecastSymbol(snapshot, symbol, horizonDays, model, version);
             return forecast ? { ...forecast, targetWeight: Number(weight) || 0 } : null;
@@ -4942,34 +4980,18 @@
           .sort((left, right) => right.predictedReturn - left.predictedReturn);
         let rowSource = "preview";
         let rows = [];
-        if (rawRows.length) {
+        if (backendRows.length) {
+          rows = normalizeBackendForecastRows(backendRows);
+          rowSource = "backend-ledger-full-holdings";
+        } else if (rawRows.length) {
           const weightSum = rawRows.reduce((sum, row) => sum + row.targetWeight, 0);
           rows = rawRows.map(row => ({ ...row, targetWeight: weightSum > .01 ? row.targetWeight / weightSum : 1 / Math.max(1, rawRows.length) }));
         } else {
           try { await loadForwardLedgerFromServer(); } catch (error) { console.warn("Ledger fallback load failed", error); }
-          rows = latestLedgerRowsFor(version, model.name, horizonDays).map(row => ({
-            ...row,
-            date: row.forecastDate,
-            currentPrice: Number(row.currentPrice),
-            predictedReturn: Number(row.predictedReturn),
-            predictedPrice: Number(row.predictedPrice),
-            probabilityUp: Number(row.probabilityUp),
-            signal: row.signal || "Hold",
-            targetWeight: Number(row.targetWeight) || 0,
-            confidence: Number(row.confidence),
-            jpmAIScore: Number(row.jpmAIScore),
-            profile: row.signalsUsed || "Backend daily automation",
-            dueDate: row.dueDate,
-            provider: row.provider,
-            ledgerScope: row.ledgerScope,
-            portfolioRank: row.portfolioRank,
-            portfolioHoldingCount: row.portfolioHoldingCount,
-            realtime: false,
-            backendLedger: true
-          }));
+          rows = normalizeBackendForecastRows(latestLedgerRowsFor(version, model.name, horizonDays));
           rowSource = rows.length ? "backend-ledger" : "empty";
         }
-        if (version === "v45") rows = applyResearchFusionToRows(rows, researchFusion, model.name);
+        if (version === "v45" && rowSource === "preview") rows = applyResearchFusionToRows(rows, researchFusion, model.name);
         const expectedReturn = rows.reduce((sum, row) => sum + row.targetWeight * row.predictedReturn, 0);
         lastForwardRows = rows.map((row, index) => ({
           modelVersion: version,
@@ -5025,7 +5047,8 @@
         const pendingCount = Number(versionStatus?.pending);
         const forecastDate = rows[0]?.date || snapshot.generatedAt?.slice(0, 10) || "--";
         const liveHistoryCount = rows.filter(row => liveSignalHistoryState.data?.[row.symbol]?.mode === "live-api").length;
-        const dataMode = rowSource === "backend-ledger"
+        const isBackendLedger = rowSource.startsWith("backend-ledger");
+        const dataMode = isBackendLedger
           ? `Backend ledger forecast ${rows.length}/${rows.length}`
           : realtimeCount
             ? `Realtime quote + live history ${realtimeCount}/${rows.length}`
@@ -5034,7 +5057,7 @@
               : rows.length
                 ? `Embedded preview ${rows.length}/${rows.length}`
                 : "Waiting for backend ledger";
-        const forwardModeLabel = rowSource === "backend-ledger"
+        const forwardModeLabel = isBackendLedger
           ? "Backend ledger forecast"
           : liveHistoryCount || realtimeCount
             ? "Live API signal forecast"
@@ -5042,7 +5065,7 @@
               ? "Embedded preview"
               : "Waiting for backend ledger";
         setText("forwardMode", `${versionLabel(version)} / ${forwardModeLabel}`);
-        setText("forwardAsOf", rowSource === "backend-ledger" ? `${dataMode}: latest forecast date ${forecastDate}` : liveHistoryCount || realtimeCount ? `${dataMode}: latest signal date ${forecastDate}` : `${dataMode}: ${forecastDate}`);
+        setText("forwardAsOf", isBackendLedger ? `${dataMode}: latest forecast date ${forecastDate}` : liveHistoryCount || realtimeCount ? `${dataMode}: latest signal date ${forecastDate}` : `${dataMode}: ${forecastDate}`);
         setText("forwardDate", forecastDate);
         setText("forwardExpectedReturn", `${percent(expectedReturn, 3)} / ${number(expectedReturn * 10000, 1)} bps`);
         setText("forwardBuyCount", `${number(rows.length, 0)} holdings`);
@@ -5149,7 +5172,7 @@
 
       function strategyAccuracyGroups(rows, minimum = 3) {
         const groups = [];
-        for (const version of ["v35", "v4"]) {
+        for (const version of ["v35", "v4", "v45"]) {
           const names = [...new Set(rows.filter(item => (item.row.modelVersion || "v35") === version).map(item => item.row.strategy).filter(Boolean))];
           names.forEach(strategy => {
             const group = rows.filter(item => (item.row.modelVersion || "v35") === version && item.row.strategy === strategy);
@@ -5213,10 +5236,13 @@
         const byVersion = version => summarizePortfolioForecasts(portfolios.filter(item => item.version === version));
         const v35 = byVersion("v35");
         const v4 = byVersion("v4");
+        const v45 = byVersion("v45");
         setText("portfolioHitV35", Number.isFinite(v35.hitRate) ? percent(v35.hitRate, 1) : "--");
         setText("portfolioRowsV35", `${number(v35.count, 0)} checked portfolios`);
         setText("portfolioHitV4", Number.isFinite(v4.hitRate) ? percent(v4.hitRate, 1) : "--");
         setText("portfolioRowsV4", `${number(v4.count, 0)} checked portfolios`);
+        setText("portfolioHitV45", Number.isFinite(v45.hitRate) ? percent(v45.hitRate, 1) : "--");
+        setText("portfolioRowsV45", `${number(v45.count, 0)} checked portfolios`);
         const overall = summarizePortfolioForecasts(portfolios);
         setText("portfolioReturnMae", Number.isFinite(overall.mae) ? percent(overall.mae, 2) : "--");
         setText("portfolioAvgHoldings", Number.isFinite(overall.avgHoldings) ? number(overall.avgHoldings, 1) : "--");
@@ -5227,7 +5253,7 @@
         setText("portfolioAccuracyStatus", portfolios.length ? `${number(portfolios.length, 0)} checked portfolio forecasts / ${coverageNote}` : "Waiting for checked portfolio forecasts");
         const rowsNode = document.getElementById("portfolioAccuracyRows");
         if (rowsNode) {
-          rowsNode.innerHTML = ["v35", "v4"].map(version => {
+          rowsNode.innerHTML = ["v35", "v4", "v45"].map(version => {
             const stats = byVersion(version);
             return `<tr><td>${escapeHtml(versionLabel(version))}</td><td class="num">${number(stats.count, 0)}</td><td class="num">${Number.isFinite(stats.hitRate) ? percent(stats.hitRate, 1) : "--"}</td><td class="num">${Number.isFinite(stats.mae) ? percent(stats.mae, 2) : "--"}</td><td class="num">${Number.isFinite(stats.rmse) ? percent(stats.rmse, 2) : "--"}</td><td class="num">${Number.isFinite(stats.bias) ? percent(stats.bias, 2) : "--"}</td><td class="num">${Number.isFinite(stats.avgHoldings) ? number(stats.avgHoldings, 1) : "--"}</td></tr>`;
           }).join("");
@@ -5237,7 +5263,7 @@
           const dates = [...new Set(portfolios.map(item => item.forecastDate))].sort().slice(-8).reverse();
           const rendered = [];
           dates.forEach(date => {
-            ["v35", "v4"].forEach(version => {
+            ["v35", "v4", "v45"].forEach(version => {
               const stats = summarizePortfolioForecasts(portfolios.filter(item => item.forecastDate === date && item.version === version));
               if (stats.count) rendered.push({ date, version, ...stats });
             });
@@ -5299,7 +5325,7 @@
           .slice(0, 12);
         node.innerHTML = groups.length ? groups.map(item => `
           <tr>
-            <td><strong>${escapeHtml(item.version === "v4" ? "V4" : "V3.5")}</strong></td>
+            <td><strong>${escapeHtml(item.version === "v45" ? "V4.5" : item.version === "v4" ? "V4" : "V3.5")}</strong></td>
             <td><strong class="strategy-name" title="${escapeHtml(item.strategy)}">${escapeHtml(compactStrategyName(item.strategy))}</strong></td>
             <td class="num">${number(item.checked, 0)}</td>
             <td class="num">${percent(item.hitRate, 1)}</td>
@@ -5320,7 +5346,7 @@
           { label: "80%+", min: .8, max: 1.01 }
         ];
         const rendered = [];
-        for (const version of ["v35", "v4"]) {
+        for (const version of ["v35", "v4", "v45"]) {
           buckets.forEach(bucket => {
             const group = rows.filter(item => {
               const rowVersion = item.row.modelVersion || "v35";
@@ -5355,12 +5381,14 @@
         const recent = recentCompletedRows(rows, 160);
         const recentStats = summarizePredictionGroup(recent);
         const v4 = summarizePredictionGroup(rows.filter(item => (item.row.modelVersion || "v35") === "v4"));
+        const v45 = summarizePredictionGroup(rows.filter(item => (item.row.modelVersion || "v35") === "v45"));
         const v35 = summarizePredictionGroup(rows.filter(item => (item.row.modelVersion || "v35") === "v35"));
         const entries = [
           { time: now.toLocaleTimeString(), type: "SCAN", text: `Dashboard refreshed ${number(rows.length, 0)} checked prediction outcomes from live ledger.` },
           { time: latest?.ranAt ? new Date(latest.ranAt).toLocaleTimeString() : "--", type: "AUTO", text: latest ? `Generated ${number(latest.generated || 0, 0)} forecasts and checked ${number(latest.checked || 0, 0)} due rows; regime ${latest.marketRegime || "Unclassified"}.` : "Waiting for automation status." },
           { time: now.toLocaleTimeString(), type: "EDGE", text: `${lastForwardRows.length ? `${number(lastForwardRows.length, 0)} current signal rows ranked by predicted return after 10 bps cost and risk buffer.` : "Refresh Signals to rank actionable edge candidates."}` },
           { time: now.toLocaleTimeString(), type: "V4", text: `V4 checked ${number(v4.checked, 0)} rows at ${Number.isFinite(v4.hitRate) ? percent(v4.hitRate, 1) : "--"} vs V3.5 ${Number.isFinite(v35.hitRate) ? percent(v35.hitRate, 1) : "--"}.` },
+          { time: now.toLocaleTimeString(), type: "V4.5", text: `V4.5 checked ${number(v45.checked, 0)} rows at ${Number.isFinite(v45.hitRate) ? percent(v45.hitRate, 1) : "--"} with GenAI research overlay.` },
           { time: now.toLocaleTimeString(), type: "FAST", text: `Recent window hit rate ${Number.isFinite(recentStats.hitRate) ? percent(recentStats.hitRate, 1) : "--"} across ${number(recentStats.checked, 0)} checked rows.` },
           { time: now.toLocaleTimeString(), type: "RULE", text: "Signals are paper-trading research outputs only; strategy code is not automatically rewritten." }
         ];
@@ -5376,10 +5404,11 @@
         const byVersion = version => summarizePredictionGroup(rows.filter(item => (item.row.modelVersion || "v35") === version));
         const v35 = byVersion("v35");
         const v4 = byVersion("v4");
+        const v45 = byVersion("v45");
         const v4Edge = Number.isFinite(v4.hitRate) && Number.isFinite(v35.hitRate) ? v4.hitRate - v35.hitRate : null;
 
         const signalGroups = [];
-        for (const version of ["v35", "v4"]) {
+        for (const version of ["v35", "v4", "v45"]) {
           for (const signal of ["Buy", "Hold", "Reduce"]) {
             const group = rows.filter(item => (item.row.modelVersion || "v35") === version && (item.row.signal || "Hold") === signal);
             const stats = summarizePredictionGroup(group);
@@ -5387,7 +5416,7 @@
           }
         }
         const regimeGroups = [];
-        for (const version of ["v35", "v4"]) {
+        for (const version of ["v35", "v4", "v45"]) {
           [...new Set(rows.filter(item => (item.row.modelVersion || "v35") === version).map(rowMarketRegime))].forEach(regime => {
             const group = rows.filter(item => (item.row.modelVersion || "v35") === version && rowMarketRegime(item) === regime);
             const stats = summarizePredictionGroup(group);
@@ -5411,7 +5440,7 @@
         }
 
         const strategyGroups = [];
-        for (const version of ["v35", "v4"]) {
+        for (const version of ["v35", "v4", "v45"]) {
           const names = [...new Set(rows.filter(item => (item.row.modelVersion || "v35") === version).map(item => item.row.strategy).filter(Boolean))];
           names.forEach(strategy => {
             const group = rows.filter(item => (item.row.modelVersion || "v35") === version && item.row.strategy === strategy);
@@ -5462,16 +5491,19 @@
         const byVersion = version => rows.filter(item => (item.row.modelVersion || "v35") === version);
         const v35 = summarizePredictionGroup(byVersion("v35"));
         const v4 = summarizePredictionGroup(byVersion("v4"));
+        const v45 = summarizePredictionGroup(byVersion("v45"));
         setText("accuracyV35", Number.isFinite(v35.hitRate) ? percent(v35.hitRate, 1) : "--");
         setText("accuracyV35Rows", `${number(v35.checked, 0)} checked predictions`);
         setText("accuracyV4", Number.isFinite(v4.hitRate) ? percent(v4.hitRate, 1) : "--");
         setText("accuracyV4Rows", `${number(v4.checked, 0)} checked predictions`);
+        setText("accuracyV45", Number.isFinite(v45.hitRate) ? percent(v45.hitRate, 1) : "--");
+        setText("accuracyV45Rows", `${number(v45.checked, 0)} checked predictions`);
         const overall = summarizePredictionGroup(rows);
         setText("accuracyMae", Number.isFinite(overall.mae) ? percent(overall.mae, 2) : "--");
         setText("predictionAccuracyStatus", rows.length ? `${number(rows.length, 0)} checked live rows / ${new Date().toLocaleString()}` : "Waiting for checked live rows");
 
         const signalGroups = [];
-        for (const version of ["v35", "v4"]) {
+        for (const version of ["v35", "v4", "v45"]) {
           for (const signal of ["Buy", "Hold", "Reduce"]) {
             const group = rows.filter(item => (item.row.modelVersion || "v35") === version && (item.row.signal || "Hold") === signal);
             const stats = summarizePredictionGroup(group);
@@ -5486,7 +5518,7 @@
         }
 
         const strategyGroups = [];
-        for (const version of ["v35", "v4"]) {
+        for (const version of ["v35", "v4", "v45"]) {
           const names = [...new Set(rows.filter(item => (item.row.modelVersion || "v35") === version).map(item => item.row.strategy).filter(Boolean))];
           names.forEach(strategy => {
             const group = rows.filter(item => (item.row.modelVersion || "v35") === version && item.row.strategy === strategy);
@@ -5544,8 +5576,28 @@
       function renderDailyFeedbackCards(payload = latestAutomationStatus) {
         const node = document.getElementById("dailyFeedbackCards");
         if (!node) return;
-        const versions = Array.isArray(payload?.versions) ? payload.versions : [];
-        if (!versions.length) {
+        const rawVersions = Array.isArray(payload?.versions) ? payload.versions : [];
+        const versionMap = new Map(rawVersions.map(item => [item.id, item]));
+        const localRows = loadForwardLedger();
+        const versions = ["v35", "v4", "v45"].map(id => {
+          const stored = versionMap.get(id);
+          if (stored) return stored;
+          const rows = localRows.filter(row => (row.modelVersion || "v35") === id);
+          const checkedRows = rows.filter(row => row.actualStatus === "Hit" || row.actualStatus === "Miss" || Number.isFinite(Number(row.actualReturn)));
+          const hits = checkedRows.filter(row => row.actualStatus === "Hit").length;
+          return {
+            id,
+            label: versionLabel(id),
+            rows: rows.length,
+            pending: Math.max(0, rows.length - checkedRows.length),
+            checked: checkedRows.length,
+            hitRate: checkedRows.length ? hits / checkedRows.length : null,
+            universeLabel: payload?.universeLabel,
+            stockUniverseCount: payload?.stockUniverseCount,
+            riskFactorCount: payload?.riskFactorCount
+          };
+        });
+        if (!rawVersions.length && !localRows.length) {
           node.innerHTML = `
             <div class="feedback-card">
               <h3>Daily Feedback</h3>
@@ -5623,6 +5675,7 @@
           }
           try {
             await loadForwardLedgerFromServer();
+            renderDailyFeedbackCards(payload);
             renderForwardLedger(parseEmbeddedData("publicMarketSnapshot"));
             renderPredictionAccuracyDashboard();
             renderFactorAttribution();

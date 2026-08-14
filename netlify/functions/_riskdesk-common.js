@@ -109,17 +109,48 @@ function embeddedQuote(symbol) {
   };
 }
 
+function addCalendarDays(dateText, offset) {
+  const date = new Date(`${dateText || new Date().toISOString().slice(0, 10)}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  return date.toISOString().slice(0, 10);
+}
+
+function syntheticDailyPoints(asset, length = 260) {
+  const latest = Number(asset?.latest);
+  if (!Number.isFinite(latest) || latest <= 0) return [];
+  const change1m = Number(asset.change1m || 0);
+  const momentum12 = Number(asset.momentum12_1 || 0);
+  const annualVol = Math.max(0.05, Math.min(1.2, Number(asset.volatility60d || 0.25)));
+  const endDate = asset.latestDate || new Date().toISOString().slice(0, 10);
+  const drift = Math.max(-0.0015, Math.min(0.0015, momentum12 / 252));
+  const monthTilt = Math.max(-0.002, Math.min(0.002, change1m / 21));
+  const dailyVol = annualVol / Math.sqrt(252);
+  let price = latest / Math.max(0.2, 1 + change1m);
+  const points = [];
+  for (let i = length - 1; i >= 0; i -= 1) {
+    const phase = Math.sin(i * 0.37) * dailyVol * 0.45 + Math.cos(i * 0.11) * dailyVol * 0.25;
+    const step = drift + monthTilt * (i < 22 ? 1 : 0.25) + phase;
+    price = Math.max(0.01, price * (1 + step));
+    points.push({ date: addCalendarDays(endDate, -i), price });
+  }
+  const scale = latest / points[points.length - 1].price;
+  return points.map(point => ({ date: point.date, price: point.price * scale }));
+}
+
 function embeddedStock(symbol) {
   const snapshot = embeddedJson("publicMarketSnapshot");
   const asset = snapshot?.assets?.[symbol];
   if (!asset) return null;
+  const rawDaily = Array.isArray(asset.daily) ? asset.daily : [];
+  const dailyPoints = rawDaily.map(row => ({ date: row[0], price: Number(row[1]) })).filter(row => Number.isFinite(row.price));
+  const points = dailyPoints.length >= 60 ? dailyPoints : syntheticDailyPoints(asset);
   return {
     symbol,
-    provider: "Embedded public snapshot",
+    provider: dailyPoints.length >= 60 ? "Embedded public snapshot" : "Embedded EODHD factor snapshot synthetic path",
     currency: asset.currency || "USD",
     latestDate: asset.latestDate,
-    points: (asset.daily || []).map(row => ({ date: row[0], price: Number(row[1]) })).filter(row => Number.isFinite(row.price)),
-    mode: "fallback"
+    points,
+    mode: dailyPoints.length >= 60 ? "fallback" : "synthetic-factor-fallback"
   };
 }
 

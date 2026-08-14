@@ -51,7 +51,12 @@
 
 [[redirects]]
   from = "/api/research-signals"
-  to = "/.netlify/functions/automation-status?research=1"
+  to = "/.netlify/functions/research-signals"
+  status = 200
+
+[[redirects]]
+  from = "/api/v45-auto-ledger"
+  to = "/.netlify/functions/v45-auto-ledger"
   status = 200
 
 [[redirects]]

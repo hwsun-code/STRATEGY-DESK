@@ -1,4 +1,5 @@
 const { json } = require("./_riskdesk-common");
+const { ensureV45LedgerRows } = require("./_v45-ledger");
 
 const STRATEGY_THEMES = {
   "S8 Trend-Guarded Reversion+": {
@@ -98,6 +99,10 @@ async function fetchArxivPapers(query) {
 
 exports.handler = async event => {
   if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
+  if (event.queryStringParameters?.repair === "v45") {
+    const result = await ensureV45LedgerRows([]);
+    return json(200, { source: "RiskDesk V4.5 automatic ledger repair", mode: "automatic per-row V4.5 research/news overlay", ...result });
+  }
   const params = event.queryStringParameters || {};
   const strategy = params.strategy || "S8 Trend-Guarded Reversion+";
   const symbols = [...new Set(String(params.symbols || "SPY,QQQ,NVDA,MSFT").split(",").map(s => s.trim().toUpperCase()).filter(Boolean))].slice(0, 12);
