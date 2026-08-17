@@ -1,5 +1,6 @@
 const { json } = require("./_riskdesk-common");
 const { ensureV45LedgerRows } = require("./_v45-ledger");
+const { connectLambda } = require("@netlify/blobs");
 
 const LEDGER_KEYS = {
   legacy: "forward-ledger.json",
@@ -91,6 +92,7 @@ async function blobStore() {
 
 exports.handler = async event => {
   if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
+  connectLambda(event);
 
   const store = await blobStore();
   if (!store) {

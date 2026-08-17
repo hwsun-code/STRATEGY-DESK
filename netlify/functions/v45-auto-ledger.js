@@ -1,8 +1,11 @@
 ﻿const { json } = require("./_riskdesk-common");
 const { ensureV45LedgerRows } = require("./_v45-ledger");
 
+const { connectLambda } = require("@netlify/blobs");
+
 exports.handler = async event => {
   if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
+  connectLambda(event);
   const result = await ensureV45LedgerRows([]);
   return json(200, {
     source: "RiskDesk V4.5 automatic ledger repair",

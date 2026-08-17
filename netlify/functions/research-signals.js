@@ -97,8 +97,11 @@ async function fetchArxivPapers(query) {
   }).filter(item => item.title);
 }
 
+const { connectLambda } = require("@netlify/blobs");
+
 exports.handler = async event => {
   if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
+  connectLambda(event);
   if (event.queryStringParameters?.repair === "v45") {
     const result = await ensureV45LedgerRows([]);
     return json(200, { source: "RiskDesk V4.5 automatic ledger repair", mode: "automatic per-row V4.5 research/news overlay", ...result });
