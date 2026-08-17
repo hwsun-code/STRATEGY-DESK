@@ -17,14 +17,7 @@ let lastBlobError = null;
 async function blobStore() {
   try {
     const { getStore } = require("@netlify/blobs");
-    const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || process.env.NETLIFY_SITE_ID_OVERRIDE;
-    const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_API_TOKEN;
-    if (!siteID || !token) {
-      throw new Error(`Missing Netlify Blobs credentials. Set NETLIFY_SITE_ID=${siteID || "01e160cd-7197-441b-90c4-1a3573fe1b6f"} and NETLIFY_BLOBS_TOKEN in Netlify environment variables.`);
-    }
-    const store = siteID && token
-      ? getStore({ name: "riskdesk-forward-ledger", siteID, token })
-      : getStore("riskdesk-forward-ledger");
+    const store = getStore("riskdesk-forward-ledger");
     lastBlobError = null;
     return store;
   } catch (error) {

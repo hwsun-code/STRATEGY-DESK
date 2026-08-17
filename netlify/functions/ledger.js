@@ -81,12 +81,9 @@ async function writeVersionLedgers(store, grouped) {
 async function blobStore() {
   try {
     const { getStore } = require("@netlify/blobs");
-    const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || process.env.NETLIFY_SITE_ID_OVERRIDE;
-    const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_API_TOKEN;
-    if (!siteID || !token) return null;
-    return siteID && token
-      ? getStore({ name: "riskdesk-forward-ledger", siteID, token })
-      : getStore("riskdesk-forward-ledger");
+    // In deployed Netlify Functions, use the platform's built-in Blobs identity.
+    // An old explicit token can be expired while the site itself is still authorized.
+    return getStore("riskdesk-forward-ledger");
   } catch {
     return null;
   }
