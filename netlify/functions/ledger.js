@@ -71,6 +71,23 @@ function countsByVersion(grouped) {
   };
 }
 
+function pagedRows(rows, params) {
+  const requestedPage = Number(params.get("page") || 1);
+  const requestedSize = Number(params.get("limit") || 400);
+  const pageSize = Math.max(50, Math.min(500, Number.isFinite(requestedSize) ? requestedSize : 400));
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const page = Math.max(1, Math.min(pageCount, Number.isFinite(requestedPage) ? requestedPage : 1));
+  const start = (page - 1) * pageSize;
+  return {
+    rows: rows.slice(start, start + pageSize),
+    totalRows: rows.length,
+    page,
+    pageSize,
+    pageCount,
+    hasMore: page < pageCount
+  };
+}
+
 async function writeVersionLedgers(store, grouped) {
   await Promise.all([
     store.setJSON(LEDGER_KEYS.v35, dedupeRows(grouped.v35 || []).slice(-50000)),
@@ -124,9 +141,9 @@ exports.handler = async event => {
       await ensureV45LedgerRows(mergeLedgers(grouped));
       grouped = await readVersionLedgers(store);
       const repairedRows = requestedVersion && grouped[requestedVersion] ? grouped[requestedVersion] : mergeLedgers(grouped);
-      return json(200, { source: "Netlify Blobs prediction ledger", storage: "version-separated", rows: repairedRows, byVersion: countsByVersion(grouped), v45AutoRepair: true });
+      return json(200, { source: "Netlify Blobs prediction ledger", storage: "version-separated", ...pagedRows(repairedRows, params), byVersion: countsByVersion(grouped), v45AutoRepair: true });
     }
-    return json(200, { source: "Netlify Blobs prediction ledger", storage: "version-separated", rows, byVersion: countsByVersion(grouped) });
+    return json(200, { source: "Netlify Blobs prediction ledger", storage: "version-separated", ...pagedRows(rows, params), byVersion: countsByVersion(grouped) });
   }
 
   if (event.httpMethod === "DELETE") {
@@ -135,7 +152,7 @@ exports.handler = async event => {
     if (requestedVersion && grouped[requestedVersion]) {
       grouped[requestedVersion] = [];
       await writeVersionLedgers(store, grouped);
-      return json(200, { ok: true, rows: mergeLedgers(grouped), byVersion: countsByVersion(grouped) });
+      return json(200, { ok: true, totalRows: mergeLedgers(grouped).length, byVersion: countsByVersion(grouped) });
     }
     await Promise.all(Object.values(LEDGER_KEYS).map(key => store.setJSON(key, [])));
     return json(200, { ok: true, rows: [], byVersion: { v35: 0, v4: 0, v45: 0 } });
@@ -151,7 +168,7 @@ exports.handler = async event => {
     }
     await writeVersionLedgers(store, grouped);
     const rows = mergeLedgers(grouped);
-    return json(200, { ok: true, saved: incoming.length, storage: "version-separated", rows, byVersion: countsByVersion(grouped) });
+    return json(200, { ok: true, saved: incoming.length, totalRows: rows.length, storage: "version-separated", byVersion: countsByVersion(grouped) });
   }
 
   return json(405, { error: "Method not allowed" });

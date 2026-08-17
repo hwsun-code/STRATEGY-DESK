@@ -4725,10 +4725,18 @@
       }
 
       async function loadForwardLedgerFromServer() {
-        const response = await fetch("/api/ledger", { cache: "no-store" });
-        if (!response.ok) throw new Error(`Ledger endpoint returned HTTP ${response.status}`);
-        const payload = await response.json();
-        const serverRows = Array.isArray(payload.rows) ? payload.rows : [];
+        const pageSize = 400;
+        const firstResponse = await fetch(`/api/ledger?page=1&limit=${pageSize}`, { cache: "no-store" });
+        if (!firstResponse.ok) throw new Error(`Ledger endpoint returned HTTP ${firstResponse.status}`);
+        const firstPayload = await firstResponse.json();
+        const serverRows = Array.isArray(firstPayload.rows) ? [...firstPayload.rows] : [];
+        const pageCount = Math.max(1, Number(firstPayload.pageCount || 1));
+        for (let page = 2; page <= pageCount; page += 1) {
+          const response = await fetch(`/api/ledger?page=${page}&limit=${pageSize}`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Ledger page ${page} returned HTTP ${response.status}`);
+          const payload = await response.json();
+          if (Array.isArray(payload.rows)) serverRows.push(...payload.rows);
+        }
         const localRows = loadForwardLedger();
         const seen = new Set();
         const merged = [...localRows, ...serverRows].filter(row => {
