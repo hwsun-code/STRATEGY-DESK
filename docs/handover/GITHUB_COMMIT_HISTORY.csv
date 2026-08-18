@@ -1,0 +1,47 @@
+﻿hash,date,message
+9aa43cb,2026-08-17,Paginate prediction ledger responses
+cdbf7b4,2026-08-17,Connect Lambda functions to Netlify Blobs context
+36ab1c1,2026-08-17,Use Netlify managed Blobs identity for live ledger
+1c2f6e6,2026-08-14,Use full V4.5 portfolio holdings in daily forecasts
+6f6f3aa,2026-08-11,Fix V4.5 research overlay fallback
+2861f15,2026-08-11,Add V4.5 GenAI research prediction overlay
+2668191,2026-07-27,Trigger Netlify env refresh
+9a20301,2026-07-24,Update dashboard with EODHD long-history backtests
+02e5e08,2026-07-22,Add prediction feedback dashboard and EODHD data hook
+99fd442,2026-07-15,Update RiskDesk Global 500 live data
+79e09dc,2026-07-14,Remove paper document from website repo
+34786a8,2026-07-14,Add V4 backtest and prediction documentation
+f28b4b7,2026-07-14,Add version controls to backtests and approval scoreboard
+3727a55,2026-07-14,Reorder workflow and compact prediction feedback
+525ad7d,2026-07-14,Replace experiment log with daily prediction feedback
+d1ea5ec,2026-07-13,Sync riskdesk entry with version dashboard
+83262d0,2026-07-13,Refresh Netlify static index
+f6b8088,2026-07-13,Add parallel v35 v4 daily validation
+3c6b34d,2026-07-12,Switch automation to daily one-day forecasts
+f19aeb2,2026-07-12,Clarify automation storage configuration
+69e2b5a,2026-07-12,Support Netlify Blobs token configuration
+cda9722,2026-07-11,Fix automation ledger persistence diagnostics
+f8c26b5,2026-07-08,Show automation status on deployed page
+d49755b,2026-07-08,Trigger Netlify deploy
+1d30eeb,2026-07-08,Trigger Netlify deploy
+9bda842,2026-07-08,Fix Netlify automation deploy config
+a6facc4,2026-07-08,Add weekly signal automation
+4a1ec96,2026-07-07,Add realtime API backend
+af027c9,2026-07-07,Add files via upload
+1f52a17,2026-07-07,Add files via upload
+9d65e43,2026-07-03,Release live weekly Risk Desk update
+766c59d,2026-06-25,Publish RiskDesk research dashboard
+7e650de,2026-06-25,Publish RiskDesk research dashboard
+1486ba5,2026-06-25,Publish RiskDesk research dashboard
+269bc7f,2026-06-25,Publish RiskDesk research dashboard
+128475f,2026-06-25,Publish RiskDesk research dashboard
+c93e479,2026-06-25,Publish RiskDesk research dashboard
+97a9f73,2026-06-25,Publish RiskDesk research dashboard
+1647213,2026-06-25,Publish RiskDesk research dashboard
+38a1c8e,2026-06-25,Publish RiskDesk research dashboard
+b8644f7,2026-06-25,Publish RiskDesk research dashboard
+82a5640,2026-06-25,Publish RiskDesk research dashboard
+14ee0b9,2026-06-25,Publish RiskDesk research dashboard
+9a86b3c,2026-06-23,Publish RiskDesk research dashboard
+b433d40,2026-06-23,Publish RiskDesk research dashboard
+63a5675,2026-06-23,Initialize RiskDesk repository
